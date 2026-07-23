@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+
+title: "Speech Animation Framework"
+
+message: >
+  If you use the Speech Animation Framework in academic research,
+  please cite this repository.
+
+type: software
+
+authors:
+  - family-names: Buza
+    given-names: Ákos
+
+version: 1.0.0
+
+date-released: 2026-07-23
+
+license: MIT
+
+keywords:
+  - speech production
+  - speech perception
+  - experimental phonetics
+  - psycholinguistics
+  - prosody
+  - information structure
+  - jsPsych
+  - JATOS
+  - browser experiments
+  - linguistics
