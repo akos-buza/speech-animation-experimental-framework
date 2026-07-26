@@ -1,0 +1,3817 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <title>Animation Task Demo</title>
+
+  <link href="jspsych/dist/jspsych.css" rel="stylesheet">
+
+ <script src="jspsych/dist/jspsych.js"></script>
+<script src="jspsych/dist/plugin-html-button-response.js"></script>
+<script src="jspsych/dist/plugin-canvas-button-response.js"></script>
+<script src="jspsych/dist/plugin-initialize-microphone.js"></script>
+<script src="jspsych/dist/plugin-html-audio-response.js"></script>
+<script src="jatos.js"></script>
+</head>
+
+<body></body>
+
+<script>
+
+const jsPsych = initJsPsych({
+  on_finish: function() {
+
+    if (typeof jatos !== "undefined") {
+      jatos.submitResultData(
+        jsPsych.data.get().json()
+      );
+    }
+  }
+});
+
+let timeline = [];
+
+/* =========================
+   INTRO SCREEN
+   ========================= */
+
+const intro = {
+  type: jsPsychHtmlButtonResponse,
+  stimulus: `
+    <h1>Animation Experiment Demo</h1>
+
+    <p>
+      Welcome! This demo illustrates a browser-based language production
+      experiment built with <strong>jsPsych</strong>.
+    </p>
+
+    <p>
+      In each trial, you will first watch a short animation.
+      Afterwards, a sentence together with an elicitation question will
+      be displayed. Read the sentence silently and carefully, and
+      replay the animation at least once.
+    </p>
+
+    <p>
+      After the animation screen, a recording screen will appear.
+      Audio recording starts automatically. A small reminder animation
+      will be shown to help you recall the event while producing the
+      sentence aloud.
+    </p>
+
+    <h3>Recording instructions</h3>
+
+    <ul style="text-align:left; display:inline-block;">
+      <li>Complete the experiment in a quiet environment.</li>
+      <li>Use a working microphone, either built in your device, or separately, if you like. The device microphone will do just fine in general.</li>
+      <li>Avoid background conversations or television.</li>
+      <li>Do not click the mouse or press keys while speaking.</li>
+      <li>Avoid coughing, laughing, or making other noises during the recording whenever possible.</li>
+      <li>Read each sentence naturally and clearly.</li>
+      <li>If you make a mistake, simply repeat the sentence correctly. There is no need to stop the recording.</li>
+    </ul>
+
+    <p>
+      After each recording, you will have the opportunity to listen to
+      your recording. If you are not satisfied with it, simply click
+      <strong>Record again</strong> to make a new recording of the same item.
+    </p>
+
+    <p>
+      This repository is intended as a reusable template. Feel free to
+      adapt the animations, instructions, stimuli, and experimental
+      workflow for your own research.
+    </p>
+  `,
+  choices: ["Continue"]
+};
+
+timeline.push(intro);
+
+/* =========================
+   GDPR SCREEN
+   ========================= */
+
+const gdpr = {
+  type: jsPsychHtmlButtonResponse,
+  stimulus: `
+    <h2>GDPR / Data Protection Placeholder</h2>
+
+    <p><strong>PLACEHOLDER TEXT</strong></p>
+
+    <p>
+      This section will later contain the official GDPR and
+      data protection information required for participation.
+    </p>
+
+    <p>
+      The final version will include:
+    </p>
+
+    <ul style="text-align:left; display:inline-block;">
+      <li>data controller information</li>
+      <li>purpose of data collection</li>
+      <li>data storage duration</li>
+      <li>withdrawal procedures</li>
+      <li>contact information</li>
+      <li>participant rights</li>
+    </ul>
+
+    <p>
+      This is only a technical placeholder for the current demo.
+    </p>
+  `,
+  choices: ["I understand"]
+};
+
+/* =========================
+   RECORDING INFORMATION
+   ========================= */
+
+const recordingInfo = {
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+    <h2>Hangfelvétel</h2>
+
+    <p>
+      A feladat során hangfelvételek készülnek.
+    </p>
+
+    <p>
+      Az animációk megtekintése után különböző
+      magyar mondatokat kell majd felolvasnia.
+    </p>
+
+    <p>
+      Kérjük, használjon működő mikrofont,
+      és lehetőség szerint csendes környezetben
+      végezze a feladatot.
+    </p>
+
+    <p>
+      A következő lépésben a böngésző engedélyt
+      fog kérni a mikrofon használatához.
+    </p>
+  `,
+
+  choices: ["Tovább"]
+};
+
+/* =========================
+   MICROPHONE INITIALIZATION
+   ========================= */
+
+const mic_check = {
+  type: jsPsychInitializeMicrophone
+};
+
+/* =========================
+   MICROPHONE TEST
+   ========================= */
+
+const testRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+  data: {
+    recording_name: "mic_test",
+    target_sentence: "Ez egy mikrofonpróba."
+  },
+
+  stimulus: `
+    <h2>Microphone Test</h2>
+
+    <p style="font-size:24px;">
+      A hangfelvétel elkezdődött, kérjük olvassa fel a következő mondatot:
+      Ez egy mikrofonpróba.
+    </p>
+  `,
+
+  recording_duration: 25000,
+
+  allow_playback: true,
+
+  on_finish: function(data) {
+
+    console.log(data);
+
+  }
+};
+
+/* Timeline */
+
+timeline.push(gdpr);
+timeline.push(recordingInfo);
+timeline.push(mic_check);
+timeline.push(testRecording);
+
+/* =========================
+   TRIANGLE ANIMATION DEMO
+   ========================= */
+
+const triangleDemo = {
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+ let replayCompleted = false;
+let animationRunning = false;
+let replayStarted = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let x = -50;
+      const targetX = 260;
+
+      function drawFrame() {
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle = "#222";
+        ctx.fillRect(40, 40, 720, 350);
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(55, 55, 690, 320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55, 55, 690, 320);
+        ctx.clip();
+
+        /* triangle */
+
+        ctx.fillStyle = "#3a66ff";
+
+        ctx.beginPath();
+        ctx.moveTo(x, 230);
+        ctx.lineTo(x + 40, 170);
+        ctx.lineTo(x + 80, 230);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+
+        if (x < targetX) {
+
+          x += 3;
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning = false;
+
+          if (replayStarted) {
+
+replayStarted = true;
+
+  const buttons = document.querySelectorAll("button");
+
+  const continueButton = buttons[buttons.length - 1];
+
+continueButton.disabled = false;
+continueButton.style.opacity = "1";
+continueButton.style.cursor = "pointer";
+
+statusText.style.color = "#008800";
+
+  statusText.innerHTML =
+    "Az animáció újrajátszása megtörtént. Folytathatja a feladatot.";
+}
+        }
+      }
+
+      drawFrame();
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton = document.createElement("button");
+    replayButton.innerText = "Animáció újrajátszása";
+    replayButton.style.marginTop = "15px";
+
+    replayButton.onclick = function() {
+
+      if (animationRunning) return;
+
+replayStarted = true;
+
+      statusText.innerHTML =
+        "Az animáció újrajátszása folyamatban van...";
+
+      playAnimation();
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* sentence */
+
+    const textDiv = document.createElement("div");
+
+ textDiv.innerHTML = `
+  <div style="
+    margin-top:20px;
+    text-align:center;
+  ">
+
+    <p style="
+      font-size:20px;
+      color:#444;
+      margin-bottom:12px;
+    ">
+      Mi történt?
+    </p>
+
+    <p style="
+      font-size:28px;
+      font-weight:bold;
+      margin-bottom:18px;
+    ">
+      Bejött a képbe egy háromszög.
+    </p>
+
+    <p style="
+      font-size:16px;
+      color:#555;
+    ">
+      Nézze meg az animációt, majd olvassa el magában a mondatot.
+    </p>
+
+  </div>
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status message */
+
+    const statusText = document.createElement("p");
+
+    statusText.style.marginTop = "15px";
+    statusText.style.fontWeight = "bold";
+    statusText.style.color = "#aa0000";
+
+    statusText.innerHTML =
+      "Kérjük, játssza le még egyszer az animációt a folytatáshoz.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue button */
+
+    setTimeout(() => {
+
+      const buttons = document.querySelectorAll("button");
+
+      if (buttons.length > 1) {
+
+        const continueButton = buttons[buttons.length - 1];
+
+        continueButton.disabled = true;
+        continueButton.style.opacity = "0.5";
+        continueButton.style.cursor = "not-allowed";
+
+      }
+
+    }, 100);
+
+  },
+
+  choices: ["Continue"]
+
+};
+
+timeline.push(triangleDemo);
+/* =========================
+   TRIANGLE RECORDING
+   ========================= */
+
+const triangleRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+data: {
+  recording_name: "triangle",
+  elicitation_question: "Mi történt?",
+  target_sentence: "Bejött a képbe egy háromszög."
+},
+
+  stimulus: `
+    <h2>Felolvasási feladat</h2>
+
+    <canvas
+      id="triangle-reminder"
+      width="300"
+      height="120"
+      style="
+        border:1px solid #999;
+        display:block;
+        margin:15px auto;
+      ">
+    </canvas>
+
+    <button id="replay-mini">
+      Animáció újrajátszása
+    </button>
+
+    <img
+      src="x"
+      style="display:none"
+      onerror="
+        const c = document.getElementById('triangle-reminder');
+        const ctx = c.getContext('2d');
+        const replayBtn = document.getElementById('replay-mini');
+
+        let x = -40;
+        let running = false;
+
+        function animate() {
+          running = true;
+
+          ctx.clearRect(0, 0, 300, 120);
+
+          ctx.fillStyle = '#3a66ff';
+
+          ctx.beginPath();
+          ctx.moveTo(x, 80);
+          ctx.lineTo(x + 20, 40);
+          ctx.lineTo(x + 40, 80);
+          ctx.closePath();
+          ctx.fill();
+
+          if (x < 80) {
+            x += 2;
+            requestAnimationFrame(animate);
+          } else {
+            running = false;
+          }
+        }
+
+        replayBtn.onclick = function() {
+          if (running) return;
+
+          x = -40;
+          animate();
+        };
+
+        animate();
+      "
+    >
+
+    <p>
+      A hangfelvétel elkezdődött. Kérjük, olvassa fel a mondatot
+     háromszor.
+    </p>
+
+    <p>
+      Az ismétlések között tartson
+      3–5 másodperc szünetet.
+    </p>
+
+    <p style="
+  font-size:20px;
+  color:#444;
+  margin-bottom:12px;
+">
+  Mi történt?
+</p>
+
+<p style="
+  font-size:28px;
+  font-weight:bold;
+">
+  Bejött a képbe egy háromszög.
+</p>
+  `,
+
+  recording_duration: 60000,
+
+  allow_playback: true,
+
+  done_button_label: "Felvétel befejezése"
+};
+
+timeline.push(triangleRecording);
+
+/* =========================
+   RED SQUARE ANIMATION DEMO
+   ========================= */
+
+const squareDemo = {
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let x = 800;
+      const targetX = 500;
+
+      function drawFrame() {
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle = "#222";
+        ctx.fillRect(40, 40, 720, 350);
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(55, 55, 690, 320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55, 55, 690, 320);
+        ctx.clip();
+
+        /* STATIC TRIANGLE */
+
+        ctx.fillStyle = "#3a66ff";
+
+        ctx.beginPath();
+        ctx.moveTo(260, 230);
+        ctx.lineTo(300, 170);
+        ctx.lineTo(340, 230);
+        ctx.closePath();
+        ctx.fill();
+
+        /* RED SQUARE */
+
+        ctx.fillStyle = "#d62828";
+
+        ctx.fillRect(
+          x,
+          150,
+          120,
+          120
+        );
+
+        ctx.restore();
+
+        if (x > targetX) {
+
+          x -= 3;
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning = false;
+
+          if (replayStarted) {
+
+            const buttons =
+              document.querySelectorAll("button");
+
+            const continueButton =
+              buttons[buttons.length - 1];
+
+            continueButton.disabled = false;
+            continueButton.style.opacity = "1";
+            continueButton.style.cursor = "pointer";
+
+            statusText.style.color = "#008800";
+
+            statusText.innerHTML =
+              "Az animáció újrajátszása megtörtént. Folytathatja a feladatot.";
+          }
+        }
+      }
+
+      drawFrame();
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton = document.createElement("button");
+
+    replayButton.innerText =
+      "Animáció újrajátszása";
+
+    replayButton.style.marginTop = "15px";
+
+    replayButton.onclick = function() {
+
+      if (animationRunning) return;
+
+      replayStarted = true;
+
+      statusText.style.color = "#aa0000";
+
+      statusText.innerHTML =
+        "Az animáció újrajátszása folyamatban van...";
+
+      playAnimation();
+    };
+
+    canvas.parentElement.appendChild(
+      document.createElement("br")
+    );
+
+    canvas.parentElement.appendChild(
+      replayButton
+    );
+
+    /* sentence */
+
+    const textDiv = document.createElement("div");
+
+textDiv.innerHTML = `
+  <div style="
+    margin-top:20px;
+    text-align:center;
+  ">
+
+    <p style="
+      font-size:20px;
+      color:#444;
+      margin-bottom:12px;
+    ">
+      Mi jött be a képbe?
+    </p>
+
+    <p style="
+      font-size:28px;
+      font-weight:bold;
+      margin-bottom:18px;
+    ">
+      Bejött a képbe egy négyszög.
+    </p>
+
+    <p style="
+      font-size:16px;
+      color:#555;
+    ">
+      Nézze meg az animációt, majd olvassa el magában a mondatot.
+    </p>
+
+  </div>
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status message */
+
+    const statusText = document.createElement("p");
+
+    statusText.style.marginTop = "15px";
+    statusText.style.fontWeight = "bold";
+    statusText.style.color = "#aa0000";
+
+    statusText.innerHTML =
+      "Kérjük, játssza le még egyszer az animációt a folytatáshoz.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(() => {
+
+      const buttons =
+        document.querySelectorAll("button");
+
+      if (buttons.length > 1) {
+
+        const continueButton =
+          buttons[buttons.length - 1];
+
+        continueButton.disabled = true;
+        continueButton.style.opacity = "0.5";
+        continueButton.style.cursor = "not-allowed";
+      }
+
+    }, 100);
+
+  },
+
+  choices: ["Continue"]
+
+};
+
+timeline.push(squareDemo);
+
+/* =========================
+   SQUARE RECORDING
+   ========================= */
+
+const squareRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+data: {
+  recording_name: "square",
+  elicitation_question: "Mi jött be a képbe?",
+  target_sentence: "Bejött a képbe egy négyszög."
+},
+
+  stimulus: `
+    <h2>Felolvasási feladat</h2>
+
+    <canvas
+      id="square-reminder"
+      width="300"
+      height="120"
+      style="
+        border:1px solid #999;
+        display:block;
+        margin:15px auto;
+      ">
+    </canvas>
+
+    <button id="replay-square">
+      Animáció újrajátszása
+    </button>
+
+    <img
+      src="x"
+      style="display:none"
+      onerror="
+        const c = document.getElementById('square-reminder');
+        const ctx = c.getContext('2d');
+        const replayBtn = document.getElementById('replay-square');
+
+        let x = 300;
+        let running = false;
+
+        function animate() {
+
+          running = true;
+
+          ctx.clearRect(0,0,300,120);
+
+          /* triangle already present */
+
+          ctx.fillStyle = '#3a66ff';
+
+          ctx.beginPath();
+          ctx.moveTo(80,80);
+          ctx.lineTo(100,40);
+          ctx.lineTo(120,80);
+          ctx.closePath();
+          ctx.fill();
+
+          /* red square */
+
+          ctx.fillStyle = '#d62828';
+
+          ctx.fillRect(
+            x,
+            40,
+            60,
+            60
+          );
+
+          if(x > 180){
+
+            x -= 2;
+            requestAnimationFrame(animate);
+
+          } else {
+
+            running = false;
+
+          }
+        }
+
+        replayBtn.onclick = function(){
+
+          if(running) return;
+
+          x = 300;
+          animate();
+
+        };
+
+        animate();
+      "
+    >
+
+    <p>
+      A hangfelvétel elkezdődött. Kérjük, olvassa fel a mondatot
+     háromszor.
+    </p>
+
+    <p>
+      Az ismétlések között tartson
+      3–5 másodperc szünetet.
+    </p>
+
+  <p style="
+  font-size:20px;
+  color:#444;
+  margin-bottom:12px;
+">
+  Mi jött be a képbe?
+</p>
+
+<p style="
+  font-size:28px;
+  font-weight:bold;
+">
+  Bejött a képbe egy négyszög.
+</p>
+  `,
+
+  recording_duration: 60000,
+
+  allow_playback: true,
+
+  done_button_label: "Felvétel befejezése"
+};
+
+timeline.push(squareRecording);
+
+/* =========================
+   PUSH ANIMATION DEMO
+   ========================= */
+
+const pushDemo = {
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let squareX = 500;
+      let triangleX = 260;
+
+      const squareHome = 500;
+
+      let phase = 1;
+
+      function drawFrame() {
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle = "#222";
+        ctx.fillRect(40, 40, 720, 350);
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(55, 55, 690, 320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55, 55, 690, 320);
+        ctx.clip();
+
+        /* movement logic */
+
+        if (phase === 1) {
+
+          squareX -= 4;
+
+          if (squareX <= 340) {
+            phase = 2;
+          }
+
+        } else if (phase === 2) {
+
+          squareX -= 4;
+          triangleX -= 4;
+
+          if (triangleX < -100) {
+            phase = 3;
+          }
+
+        } else if (phase === 3) {
+
+          squareX += 4;
+
+          if (squareX >= squareHome) {
+            squareX = squareHome;
+            phase = 4;
+          }
+        }
+
+        /* triangle */
+
+        if (triangleX > -100) {
+
+          ctx.fillStyle = "#3a66ff";
+
+          ctx.beginPath();
+          ctx.moveTo(triangleX, 230);
+          ctx.lineTo(triangleX + 40, 170);
+          ctx.lineTo(triangleX + 80, 230);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        /* square */
+
+        ctx.fillStyle = "#d62828";
+
+        ctx.fillRect(
+          squareX,
+          150,
+          120,
+          120
+        );
+
+        ctx.restore();
+
+        if (phase !== 4) {
+
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning = false;
+
+          if (replayStarted) {
+
+            const buttons =
+              document.querySelectorAll("button");
+
+            const continueButton =
+              buttons[buttons.length - 1];
+
+            continueButton.disabled = false;
+            continueButton.style.opacity = "1";
+            continueButton.style.cursor = "pointer";
+
+            statusText.style.color = "#008800";
+
+            statusText.innerHTML =
+              "Az animáció újrajátszása megtörtént. Folytathatja a feladatot.";
+          }
+        }
+      }
+
+      drawFrame();
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton = document.createElement("button");
+
+    replayButton.innerText =
+      "Animáció újrajátszása";
+
+    replayButton.style.marginTop = "15px";
+
+    replayButton.onclick = function() {
+
+      if (animationRunning) return;
+
+      replayStarted = true;
+
+      statusText.style.color = "#aa0000";
+
+      statusText.innerHTML =
+        "Az animáció újrajátszása folyamatban van...";
+
+      playAnimation();
+    };
+
+    canvas.parentElement.appendChild(
+      document.createElement("br")
+    );
+
+    canvas.parentElement.appendChild(
+      replayButton
+    );
+
+    /* text */
+
+    const textDiv = document.createElement("div");
+
+    textDiv.innerHTML = `
+  <div style="
+    margin-top:20px;
+    text-align:center;
+  ">
+
+    <p style="
+      font-size:20px;
+      color:#444;
+      margin-bottom:12px;
+    ">
+      Melyik alakzat lökte ki a másikat a képből?
+    </p>
+
+    <p style="
+      font-size:28px;
+      font-weight:bold;
+      margin-bottom:18px;
+    ">
+      A négyszög lökte ki a háromszöget.
+    </p>
+
+    <p style="
+      font-size:16px;
+      color:#555;
+    ">
+      Nézze meg az animációt, majd olvassa el magában a mondatot.
+    </p>
+
+  </div>
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status message */
+
+    const statusText = document.createElement("p");
+
+    statusText.style.marginTop = "15px";
+    statusText.style.fontWeight = "bold";
+    statusText.style.color = "#aa0000";
+
+    statusText.innerHTML =
+      "Kérjük, játssza le még egyszer az animációt a folytatáshoz.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(() => {
+
+      const buttons =
+        document.querySelectorAll("button");
+
+      if (buttons.length > 1) {
+
+        const continueButton =
+          buttons[buttons.length - 1];
+
+        continueButton.disabled = true;
+        continueButton.style.opacity = "0.5";
+        continueButton.style.cursor = "not-allowed";
+      }
+
+    }, 100);
+
+  },
+
+  choices: ["Continue"]
+
+};
+
+timeline.push(pushDemo);
+
+
+/* =========================
+   PUSH RECORDING
+   ========================= */
+
+const pushRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+data: {
+  recording_name: "push",
+  elicitation_question: "Melyik alakzat lökte ki a másikat a képből?",
+  target_sentence: "A négyszög lökte ki a háromszöget a képből."
+},
+
+  stimulus: `
+    <h2>Felolvasási feladat</h2>
+
+    <canvas
+      id="push-reminder"
+      width="300"
+      height="120"
+      style="
+        border:1px solid #999;
+        display:block;
+        margin:15px auto;
+      ">
+    </canvas>
+
+    <button id="replay-push">
+      Animáció újrajátszása
+    </button>
+
+    <img
+      src="x"
+      style="display:none"
+      onerror="
+        const c = document.getElementById('push-reminder');
+        const ctx = c.getContext('2d');
+        const replayBtn = document.getElementById('replay-push');
+
+        let running = false;
+
+        function animate() {
+
+          let squareX = 180;
+          let triangleX = 80;
+
+          let phase = 1;
+
+          running = true;
+
+          function drawFrame() {
+
+            ctx.clearRect(0,0,300,120);
+
+            /* movement logic */
+
+            if (phase === 1) {
+
+              squareX -= 2;
+
+              if (squareX <= 120) {
+                phase = 2;
+              }
+
+            } else if (phase === 2) {
+
+              squareX -= 2;
+              triangleX -= 2;
+
+              if (triangleX < -50) {
+                phase = 3;
+              }
+
+            } else if (phase === 3) {
+
+              squareX += 2;
+
+              if (squareX >= 180) {
+                squareX = 180;
+                phase = 4;
+              }
+            }
+
+            /* triangle */
+
+            if (triangleX > -50) {
+
+              ctx.fillStyle = '#3a66ff';
+
+              ctx.beginPath();
+              ctx.moveTo(triangleX,80);
+              ctx.lineTo(triangleX+20,40);
+              ctx.lineTo(triangleX+40,80);
+              ctx.closePath();
+              ctx.fill();
+            }
+
+            /* square */
+
+            ctx.fillStyle = '#d62828';
+
+            ctx.fillRect(
+              squareX,
+              40,
+              60,
+              60
+            );
+
+            if (phase !== 4) {
+
+              requestAnimationFrame(drawFrame);
+
+            } else {
+
+              running = false;
+
+            }
+          }
+
+          drawFrame();
+        }
+
+        replayBtn.onclick = function(){
+
+          if(running) return;
+
+          animate();
+
+        };
+
+        animate();
+      "
+    >
+
+    <p>
+      A hangfelvétel elkezdődött. Kérjük, olvassa fel a mondatot
+     háromszor.
+    </p>
+
+    <p>
+      Az ismétlések között tartson
+      3–5 másodperc szünetet.
+    </p>
+
+    <p style="
+  font-size:20px;
+  color:#444;
+  margin-bottom:12px;
+">
+  Melyik alakzat lökte ki a másikat a képből?
+</p>
+
+<p style="
+  font-size:28px;
+  font-weight:bold;
+">
+  A négyszög lökte ki a háromszöget a képből.
+</p>
+  `,
+
+  recording_duration: 60000,
+
+  allow_playback: true,
+
+  done_button_label: "Felvétel befejezése"
+};
+
+timeline.push(pushRecording);
+
+
+
+/* =========================
+   CIRCLE ANIMATION DEMO
+   ========================= */
+
+const circleDemo = {
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let x = -60;
+      const targetX = 175;
+
+      function drawFrame() {
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle = "#222";
+        ctx.fillRect(40, 40, 720, 350);
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(55, 55, 690, 320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55, 55, 690, 320);
+        ctx.clip();
+
+        /* STATIC RED SQUARE */
+
+        ctx.fillStyle = "#d62828";
+
+        ctx.fillRect(
+          430,
+          150,
+          120,
+          120
+        );
+
+        /* GREEN CIRCLE */
+
+        ctx.fillStyle = "#2ca02c";
+
+        ctx.beginPath();
+        ctx.arc(
+          x,
+          210,
+          60,
+          0,
+          2 * Math.PI
+        );
+        ctx.fill();
+
+        ctx.restore();
+
+        if (x < targetX) {
+
+          x += 3;
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning = false;
+
+          if (replayStarted) {
+
+            const buttons =
+              document.querySelectorAll("button");
+
+            const continueButton =
+              buttons[buttons.length - 1];
+
+            continueButton.disabled = false;
+            continueButton.style.opacity = "1";
+            continueButton.style.cursor = "pointer";
+
+            statusText.style.color = "#008800";
+
+            statusText.innerHTML =
+              "Az animáció újrajátszása megtörtént. Folytathatja a feladatot.";
+
+          }
+        }
+      }
+
+      drawFrame();
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton = document.createElement("button");
+
+    replayButton.innerText =
+      "Animáció újrajátszása";
+
+    replayButton.style.marginTop = "15px";
+
+    replayButton.onclick = function() {
+
+      if (animationRunning) return;
+
+      replayStarted = true;
+
+      statusText.style.color = "#aa0000";
+
+      statusText.innerHTML =
+        "Az animáció újrajátszása folyamatban van...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(
+      document.createElement("br")
+    );
+
+    canvas.parentElement.appendChild(
+      replayButton
+    );
+
+    /* text */
+
+    const textDiv = document.createElement("div");
+
+    textDiv.innerHTML = `
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Mi jött be a képbe?
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          margin-bottom:18px;
+        ">
+          Bejött a képbe egy kör.
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+        ">
+          Nézze meg az animációt, majd olvassa el magában a mondatot.
+        </p>
+
+      </div>
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status message */
+
+    const statusText = document.createElement("p");
+
+    statusText.style.marginTop = "15px";
+    statusText.style.fontWeight = "bold";
+    statusText.style.color = "#aa0000";
+
+    statusText.innerHTML =
+      "Kérjük, játssza le még egyszer az animációt a folytatáshoz.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(() => {
+
+      const buttons =
+        document.querySelectorAll("button");
+
+      if (buttons.length > 1) {
+
+        const continueButton =
+          buttons[buttons.length - 1];
+
+        continueButton.disabled = true;
+        continueButton.style.opacity = "0.5";
+        continueButton.style.cursor = "not-allowed";
+
+      }
+
+    }, 100);
+
+  },
+
+  choices: ["Continue"]
+
+};
+
+timeline.push(circleDemo);
+
+
+/* =========================
+   CIRCLE RECORDING
+   ========================= */
+
+const circleRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+  data: {
+    recording_name: "circle",
+    elicitation_question: "Mi jött be a képbe?",
+    target_sentence: "Bejött a képbe egy kör."
+  },
+
+  stimulus: `
+    <h2>Felolvasási feladat</h2>
+
+    <canvas
+      id="circle-reminder"
+      width="300"
+      height="120"
+      style="
+        border:1px solid #999;
+        display:block;
+        margin:15px auto;
+      ">
+    </canvas>
+
+    <button id="replay-circle">
+      Animáció újrajátszása
+    </button>
+
+    <img
+      src="x"
+      style="display:none"
+      onerror="
+        const c = document.getElementById('circle-reminder');
+        const ctx = c.getContext('2d');
+        const replayBtn = document.getElementById('replay-circle');
+
+        let x = -30;
+        let running = false;
+
+        function animate() {
+
+          running = true;
+
+          ctx.clearRect(0,0,300,120);
+
+          /* red square already present */
+
+          ctx.fillStyle = '#d62828';
+
+          ctx.fillRect(
+            170,
+            40,
+            60,
+            60
+          );
+
+          /* green circle */
+
+          ctx.fillStyle = '#2ca02c';
+
+          ctx.beginPath();
+          ctx.arc(
+            x,
+            70,
+            30,
+            0,
+            2 * Math.PI
+          );
+          ctx.fill();
+
+          if(x < 70){
+
+            x += 2;
+            requestAnimationFrame(animate);
+
+          } else {
+
+            running = false;
+
+          }
+        }
+
+        replayBtn.onclick = function(){
+
+          if(running) return;
+
+          x = -30;
+          animate();
+
+        };
+
+        animate();
+      "
+    >
+
+    <p>
+      A hangfelvétel elkezdődött. Kérjük, olvassa fel a mondatot
+     háromszor.
+    </p>
+
+    <p>
+      Az ismétlések között tartson
+      3–5 másodperc szünetet.
+    </p>
+
+    <p style="
+      font-size:20px;
+      color:#444;
+      margin-bottom:12px;
+    ">
+      Mi jött be a képbe?
+    </p>
+
+    <p style="
+      font-size:28px;
+      font-weight:bold;
+    ">
+      Bejött a képbe egy kör.
+    </p>
+  `,
+
+  recording_duration: 60000,
+
+  allow_playback: true,
+
+  done_button_label: "Felvétel befejezése"
+};
+
+timeline.push(circleRecording);
+
+
+
+
+
+
+/* =========================
+   SQUARE JUMP ANIMATION DEMO
+   ========================= */
+
+const jumpDemo = {
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      /* same positions as elsewhere */
+
+      const circleX = 175;
+      const squareX = 430;
+
+      let y = 150;
+      let velocity = -18;
+
+      const gravity = 0.9;
+      const ground = 150;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle = "#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* green circle */
+
+        ctx.fillStyle = "#2ca02c";
+
+        ctx.beginPath();
+        ctx.arc(
+          circleX,
+          210,
+          60,
+          0,
+          2 * Math.PI
+        );
+        ctx.fill();
+
+        /* red square */
+
+        ctx.fillStyle = "#d62828";
+
+        ctx.fillRect(
+          squareX,
+          y,
+          120,
+          120
+        );
+
+        ctx.restore();
+
+        velocity += gravity;
+        y += velocity;
+
+        if (y >= ground) {
+
+          y = ground;
+
+          if (velocity > 0) {
+
+            animationRunning = false;
+
+            if (replayStarted) {
+
+              const buttons =
+                document.querySelectorAll("button");
+
+              const continueButton =
+                buttons[buttons.length - 1];
+
+              continueButton.disabled = false;
+              continueButton.style.opacity = "1";
+              continueButton.style.cursor = "pointer";
+
+              statusText.style.color = "#008800";
+
+              statusText.innerHTML =
+                "Az animáció újrajátszása megtörtént. Folytathatja a feladatot.";
+
+            }
+
+            return;
+
+          }
+
+        }
+
+        requestAnimationFrame(drawFrame);
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton = document.createElement("button");
+
+    replayButton.innerText =
+      "Animáció újrajátszása";
+
+    replayButton.style.marginTop = "15px";
+
+    replayButton.onclick = function() {
+
+      if(animationRunning) return;
+
+      replayStarted = true;
+
+      statusText.style.color = "#aa0000";
+
+      statusText.innerHTML =
+        "Az animáció újrajátszása folyamatban van...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(
+      document.createElement("br")
+    );
+
+    canvas.parentElement.appendChild(
+      replayButton
+    );
+
+    /* text */
+
+    const textDiv = document.createElement("div");
+
+    textDiv.innerHTML = `
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Mi történt?
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          margin-bottom:18px;
+        ">
+          A négyszög felugrott.
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+        ">
+          Nézze meg az animációt, majd olvassa el magában a mondatot.
+        </p>
+
+      </div>
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText = document.createElement("p");
+
+    statusText.style.marginTop = "15px";
+    statusText.style.fontWeight = "bold";
+    statusText.style.color = "#aa0000";
+
+    statusText.innerHTML =
+      "Kérjük, játssza le még egyszer az animációt a folytatáshoz.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(() => {
+
+      const buttons =
+        document.querySelectorAll("button");
+
+      if(buttons.length > 1){
+
+        const continueButton =
+          buttons[buttons.length - 1];
+
+        continueButton.disabled = true;
+        continueButton.style.opacity = "0.5";
+        continueButton.style.cursor = "not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Continue"]
+
+};
+
+timeline.push(jumpDemo);
+
+
+
+/* =========================
+   SQUARE JUMP RECORDING
+   ========================= */
+
+const jumpRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+  data: {
+    recording_name: "jump",
+    elicitation_question: "Mi történt?",
+    target_sentence: "A négyszög felugrott."
+  },
+
+  stimulus: `
+    <h2>Felolvasási feladat</h2>
+
+    <canvas
+      id="jump-reminder"
+      width="300"
+      height="120"
+      style="
+        border:1px solid #999;
+        display:block;
+        margin:15px auto;
+      ">
+    </canvas>
+
+    <button id="replay-jump">
+      Animáció újrajátszása
+    </button>
+
+    <img
+      src="x"
+      style="display:none"
+      onerror="
+        const c = document.getElementById('jump-reminder');
+        const ctx = c.getContext('2d');
+        const replayBtn = document.getElementById('replay-jump');
+
+        let running = false;
+
+        function animate() {
+
+          let y = 40;
+          let velocity = -9;
+
+          const gravity = 0.45;
+          const ground = 40;
+
+          const circleX = 70;
+          const squareX = 170;
+
+          running = true;
+
+          function drawFrame() {
+
+            ctx.clearRect(0,0,300,120);
+
+            /* green circle */
+
+            ctx.fillStyle = '#2ca02c';
+
+            ctx.beginPath();
+            ctx.arc(
+              circleX,
+              70,
+              30,
+              0,
+              2 * Math.PI
+            );
+            ctx.fill();
+
+            /* red square */
+
+            ctx.fillStyle = '#d62828';
+
+            ctx.fillRect(
+              squareX,
+              y,
+              60,
+              60
+            );
+
+            velocity += gravity;
+            y += velocity;
+
+            if (y >= ground) {
+
+              y = ground;
+
+              if (velocity > 0) {
+
+                running = false;
+                return;
+
+              }
+
+            }
+
+            requestAnimationFrame(drawFrame);
+
+          }
+
+          drawFrame();
+
+        }
+
+        replayBtn.onclick = function(){
+
+          if(running) return;
+
+          animate();
+
+        };
+
+        animate();
+      "
+    >
+
+    <p>
+      A hangfelvétel elkezdődött. Kérjük, olvassa fel a mondatot
+     háromszor.
+    </p>
+
+    <p>
+      Az ismétlések között tartson
+      3–5 másodperc szünetet.
+    </p>
+
+    <p style="
+      font-size:20px;
+      color:#444;
+      margin-bottom:12px;
+    ">
+      Mi történt?
+    </p>
+
+    <p style="
+      font-size:28px;
+      font-weight:bold;
+    ">
+      A négyszög felugrott.
+    </p>
+  `,
+
+  recording_duration: 60000,
+
+  allow_playback: true,
+
+  done_button_label: "Felvétel befejezése"
+};
+
+timeline.push(jumpRecording);
+
+
+
+
+
+
+
+
+
+/* =========================
+   CONTRASTIVE JUMP RECORDING
+   ========================= */
+
+const jumpContrastRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+  data: {
+    recording_name: "jump_contrast",
+    elicitation_question: "Melyik alakzat ugrott fel: a kör vagy a négyszög?",
+    target_sentence: "A négyszög ugrott fel."
+  },
+
+  stimulus: `
+    <h2>Felolvasási feladat</h2>
+
+    <canvas
+      id="jump-reminder"
+      width="300"
+      height="120"
+      style="
+        border:1px solid #999;
+        display:block;
+        margin:15px auto;
+      ">
+    </canvas>
+
+    <button id="replay-jump">
+      Animáció újrajátszása
+    </button>
+
+    <img
+      src="x"
+      style="display:none"
+      onerror="
+        const c = document.getElementById('jump-reminder');
+        const ctx = c.getContext('2d');
+        const replayBtn = document.getElementById('replay-jump');
+
+        let running = false;
+
+        function animate() {
+
+          let y = 40;
+          let velocity = -9;
+
+          const gravity = 0.45;
+          const ground = 40;
+
+          const circleX = 70;
+          const squareX = 170;
+
+          running = true;
+
+          function drawFrame() {
+
+            ctx.clearRect(0,0,300,120);
+
+            /* green circle */
+
+            ctx.fillStyle = '#2ca02c';
+
+            ctx.beginPath();
+            ctx.arc(
+              circleX,
+              70,
+              30,
+              0,
+              2 * Math.PI
+            );
+            ctx.fill();
+
+            /* red square */
+
+            ctx.fillStyle = '#d62828';
+
+            ctx.fillRect(
+              squareX,
+              y,
+              60,
+              60
+            );
+
+            velocity += gravity;
+            y += velocity;
+
+            if (y >= ground) {
+
+              y = ground;
+
+              if (velocity > 0) {
+
+                running = false;
+                return;
+
+              }
+
+            }
+
+            requestAnimationFrame(drawFrame);
+
+          }
+
+          drawFrame();
+
+        }
+
+        replayBtn.onclick = function(){
+
+          if(running) return;
+
+          animate();
+
+        };
+
+        animate();
+      "
+    >
+
+    <p>
+      A hangfelvétel elkezdődött. Kérjük, olvassa fel a mondatot
+     háromszor.
+    </p>
+
+    <p>
+      Az ismétlések között tartson
+      3–5 másodperc szünetet.
+    </p>
+
+    <p style="
+      font-size:20px;
+      color:#444;
+      margin-bottom:12px;
+    ">
+      Melyik alakzat ugrott fel: a kör vagy a négyszög?
+    </p>
+
+    <p style="
+      font-size:28px;
+      font-weight:bold;
+    ">
+      A négyszög ugrott fel.
+    </p>
+  `,
+
+  recording_duration: 60000,
+
+  allow_playback: true,
+
+  done_button_label: "Felvétel befejezése"
+};
+
+timeline.push(jumpContrastRecording);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================
+   SIZE CHANGE ANIMATION DEMO
+   ========================= */
+
+const sizeDemo = {
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let circleRadius = 45;
+      let squareSize = 120;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle = "#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* growing green circle */
+
+        ctx.fillStyle = "#2ca02c";
+
+        ctx.beginPath();
+        ctx.arc(
+          220,
+          210,
+          circleRadius,
+          0,
+          2 * Math.PI
+        );
+        ctx.fill();
+
+        /* shrinking red square */
+
+        ctx.fillStyle = "#d62828";
+
+        ctx.fillRect(
+          480 + (120 - squareSize)/2,
+          150 + (120 - squareSize)/2,
+          squareSize,
+          squareSize
+        );
+
+        ctx.restore();
+
+        if (circleRadius < 75) {
+
+          circleRadius += 0.5;
+          squareSize -= 0.5;
+
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning = false;
+
+          if (replayStarted) {
+
+            const buttons =
+              document.querySelectorAll("button");
+
+            const continueButton =
+              buttons[buttons.length - 1];
+
+            continueButton.disabled = false;
+            continueButton.style.opacity = "1";
+            continueButton.style.cursor = "pointer";
+
+            statusText.style.color = "#008800";
+
+            statusText.innerHTML =
+              "Az animáció újrajátszása megtörtént. Folytathatja a feladatot.";
+
+          }
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton = document.createElement("button");
+
+    replayButton.innerText =
+      "Animáció újrajátszása";
+
+    replayButton.style.marginTop = "15px";
+
+    replayButton.onclick = function() {
+
+      if (animationRunning) return;
+
+      replayStarted = true;
+
+      statusText.style.color = "#aa0000";
+
+      statusText.innerHTML =
+        "Az animáció újrajátszása folyamatban van...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(
+      document.createElement("br")
+    );
+
+    canvas.parentElement.appendChild(
+      replayButton
+    );
+
+    /* text */
+
+    const textDiv = document.createElement("div");
+
+    textDiv.innerHTML = `
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Mi történt?
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          margin-bottom:18px;
+        ">
+          A kör megnőtt, a négyszög összement.
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+        ">
+          Nézze meg az animációt, majd olvassa el magában a mondatot.
+        </p>
+
+      </div>
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText = document.createElement("p");
+
+    statusText.style.marginTop = "15px";
+    statusText.style.fontWeight = "bold";
+    statusText.style.color = "#aa0000";
+
+    statusText.innerHTML =
+      "Kérjük, játssza le még egyszer az animációt a folytatáshoz.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(() => {
+
+      const buttons =
+        document.querySelectorAll("button");
+
+      if (buttons.length > 1) {
+
+        const continueButton =
+          buttons[buttons.length - 1];
+
+        continueButton.disabled = true;
+        continueButton.style.opacity = "0.5";
+        continueButton.style.cursor = "not-allowed";
+
+      }
+
+    }, 100);
+
+  },
+
+  choices: ["Continue"]
+
+};
+
+timeline.push(sizeDemo);
+
+
+
+
+
+
+
+
+/* =========================
+   SIZE CHANGE RECORDING
+   ========================= */
+
+const sizeRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+  data: {
+    recording_name: "size",
+    elicitation_question: "Mi történt?",
+    target_sentence: "A kör megnőtt, a négyszög összement."
+  },
+
+  stimulus: `
+    <h2>Felolvasási feladat</h2>
+
+    <canvas
+      id="size-reminder"
+      width="300"
+      height="120"
+      style="
+        border:1px solid #999;
+        display:block;
+        margin:15px auto;
+      ">
+    </canvas>
+
+    <button id="replay-size">
+      Animáció újrajátszása
+    </button>
+
+    <img
+      src="x"
+      style="display:none"
+      onerror="
+        const c = document.getElementById('size-reminder');
+        const ctx = c.getContext('2d');
+        const replayBtn = document.getElementById('replay-size');
+
+        let running = false;
+
+        function animate(){
+
+          running = true;
+
+          let circleRadius = 20;
+          let squareSize = 60;
+
+          function drawFrame(){
+
+            ctx.clearRect(0,0,300,120);
+
+            /* growing green circle */
+
+            ctx.fillStyle = '#2ca02c';
+
+            ctx.beginPath();
+            ctx.arc(
+              80,
+              70,
+              circleRadius,
+              0,
+              2 * Math.PI
+            );
+            ctx.fill();
+
+            /* shrinking red square */
+
+            ctx.fillStyle = '#d62828';
+
+            ctx.fillRect(
+              170 + (60 - squareSize)/2,
+              40 + (60 - squareSize)/2,
+              squareSize,
+              squareSize
+            );
+
+            if(circleRadius < 35){
+
+              circleRadius += 0.3;
+              squareSize -= 0.3;
+
+              requestAnimationFrame(drawFrame);
+
+            } else {
+
+              running = false;
+
+            }
+
+          }
+
+          drawFrame();
+
+        }
+
+        replayBtn.onclick = function(){
+
+          if(running) return;
+
+          animate();
+
+        };
+
+        animate();
+      "
+    >
+
+    <p>
+      A hangfelvétel elkezdődött. Kérjük, olvassa fel a mondatot
+     háromszor.
+    </p>
+
+    <p>
+      Az ismétlések között tartson
+      3–5 másodperc szünetet.
+    </p>
+
+    <p style="
+      font-size:20px;
+      color:#444;
+      margin-bottom:12px;
+    ">
+      Mi történt?
+    </p>
+
+    <p style="
+      font-size:28px;
+      font-weight:bold;
+    ">
+      A kör megnőtt, a négyszög összement.
+    </p>
+  `,
+
+  recording_duration: 60000,
+
+  allow_playback: true,
+
+  done_button_label: "Felvétel befejezése"
+};
+
+timeline.push(sizeRecording);
+
+
+
+
+
+/* =========================
+   COLOUR ANIMATION DEMO
+   ========================= */
+
+const colourDemo = {
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let frame = 0;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle = "#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* green circle */
+
+   /* green circle */
+
+ctx.fillStyle = "#2ca02c";
+
+ctx.beginPath();
+ctx.arc(
+  175,
+  210,
+  75,
+  0,
+  2 * Math.PI
+);
+ctx.fill();
+
+        /* red square */
+
+        ctx.fillStyle = "#d62828";
+    ctx.fillRect(
+  445,
+  165,
+  90,
+  90
+);
+
+        ctx.restore();
+
+        frame++;
+
+        if(frame < 60){
+
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning = false;
+
+          if(replayStarted){
+
+            const buttons =
+              document.querySelectorAll("button");
+
+            const continueButton =
+              buttons[buttons.length - 1];
+
+            continueButton.disabled = false;
+            continueButton.style.opacity = "1";
+            continueButton.style.cursor = "pointer";
+
+            statusText.style.color = "#008800";
+
+            statusText.innerHTML =
+              "Az animáció újrajátszása megtörtént. Folytathatja a feladatot.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton = document.createElement("button");
+
+    replayButton.innerText =
+      "Animáció újrajátszása";
+
+    replayButton.style.marginTop = "15px";
+
+    replayButton.onclick = function(){
+
+      if(animationRunning) return;
+
+      replayStarted = true;
+
+      statusText.style.color = "#aa0000";
+
+      statusText.innerHTML =
+        "Az animáció újrajátszása folyamatban van...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(
+      document.createElement("br")
+    );
+
+    canvas.parentElement.appendChild(
+      replayButton
+    );
+
+    /* text */
+
+    const textDiv = document.createElement("div");
+
+    textDiv.innerHTML = `
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Milyen színű a négyszög?
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          margin-bottom:18px;
+        ">
+          A négyszög piros.
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+        ">
+          Nézze meg az animációt, majd olvassa el magában a mondatot.
+        </p>
+
+      </div>
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText = document.createElement("p");
+
+    statusText.style.marginTop = "15px";
+    statusText.style.fontWeight = "bold";
+    statusText.style.color = "#aa0000";
+
+    statusText.innerHTML =
+      "Kérjük, játssza le még egyszer az animációt a folytatáshoz.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(() => {
+
+      const buttons =
+        document.querySelectorAll("button");
+
+      if(buttons.length > 1){
+
+        const continueButton =
+          buttons[buttons.length - 1];
+
+        continueButton.disabled = true;
+        continueButton.style.opacity = "0.5";
+        continueButton.style.cursor = "not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Continue"]
+
+};
+
+timeline.push(colourDemo);
+
+
+
+
+
+/* =========================
+   COLOUR RECORDING
+   ========================= */
+
+const colourRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+  data: {
+    recording_name: "colour",
+    elicitation_question: "Milyen színű a négyszög?",
+    target_sentence: "A négyszög piros."
+  },
+
+  stimulus: `
+    <h2>Felolvasási feladat</h2>
+
+    <canvas
+      id="colour-reminder"
+      width="300"
+      height="120"
+      style="
+        border:1px solid #999;
+        display:block;
+        margin:15px auto;
+      ">
+    </canvas>
+
+    <button id="replay-colour">
+      Animáció újrajátszása
+    </button>
+
+    <img
+      src="x"
+      style="display:none"
+      onerror="
+        const c = document.getElementById('colour-reminder');
+        const ctx = c.getContext('2d');
+        const replayBtn = document.getElementById('replay-colour');
+
+        let running = false;
+
+        function animate(){
+
+          running = true;
+
+          function drawFrame(){
+
+            ctx.clearRect(0,0,300,120);
+
+            /* green circle */
+
+            ctx.fillStyle = '#2ca02c';
+
+            ctx.beginPath();
+            ctx.arc(
+              70,
+              70,
+              30,
+              0,
+              2 * Math.PI
+            );
+            ctx.fill();
+
+            /* red square */
+
+            ctx.fillStyle = '#d62828';
+
+            ctx.fillRect(
+              170,
+              40,
+              60,
+              60
+            );
+
+            running = false;
+
+          }
+
+          drawFrame();
+
+        }
+
+        replayBtn.onclick = function(){
+
+          if(running) return;
+
+          animate();
+
+        };
+
+        animate();
+      "
+    >
+
+    <p>
+      A hangfelvétel elkezdődött. Kérjük, olvassa fel a mondatot
+     háromszor.
+    </p>
+
+    <p>
+      Az ismétlések között tartson
+      3–5 másodperc szünetet.
+    </p>
+
+    <p style="
+      font-size:20px;
+      color:#444;
+      margin-bottom:12px;
+    ">
+      Milyen színű a négyszög?
+    </p>
+
+    <p style="
+      font-size:28px;
+      font-weight:bold;
+    ">
+      A négyszög piros.
+    </p>
+  `,
+
+  recording_duration: 60000,
+
+  allow_playback: true,
+
+  done_button_label: "Felvétel befejezése"
+};
+
+timeline.push(colourRecording);
+
+
+/* =========================
+   CONTRAST COLOUR RECORDING
+   ========================= */
+
+const contrastColourRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+  data: {
+    recording_name: "colour_contrast",
+    elicitation_question: "Melyik alakzat zöld: a kör vagy a négyszög?",
+    target_sentence: "A kör zöld."
+  },
+
+  stimulus: `
+    <h2>Felolvasási feladat</h2>
+
+    <canvas
+      id="colour-reminder"
+      width="300"
+      height="120"
+      style="
+        border:1px solid #999;
+        display:block;
+        margin:15px auto;
+      ">
+    </canvas>
+
+    <button id="replay-colour">
+      Animáció újrajátszása
+    </button>
+
+ <img
+      src="x"
+      style="display:none"
+      onerror="
+        const c = document.getElementById('colour-reminder');
+        const ctx = c.getContext('2d');
+        const replayBtn = document.getElementById('replay-colour');
+
+        let running = false;
+
+        function animate(){
+
+          running = true;
+
+          function drawFrame(){
+
+            ctx.clearRect(0,0,300,120);
+
+            /* green circle */
+
+            ctx.fillStyle = '#2ca02c';
+
+            ctx.beginPath();
+            ctx.arc(
+              70,
+              70,
+              30,
+              0,
+              2 * Math.PI
+            );
+            ctx.fill();
+
+            /* red square */
+
+            ctx.fillStyle = '#d62828';
+
+            ctx.fillRect(
+              170,
+              40,
+              60,
+              60
+            );
+
+            running = false;
+
+          }
+
+          drawFrame();
+
+        }
+
+        replayBtn.onclick = function(){
+
+          if(running) return;
+
+          animate();
+
+        };
+
+        animate();
+      "
+    >
+    <p>
+      A hangfelvétel elkezdődött. Kérjük, olvassa fel a mondatot
+     háromszor.
+    </p>
+
+    <p>
+      Az ismétlések között tartson
+      3–5 másodperc szünetet.
+    </p>
+
+    <p style="
+      font-size:20px;
+      color:#444;
+      margin-bottom:12px;
+    ">
+      Melyik alakzat zöld: a kör vagy a négyszög?
+    </p>
+
+    <p style="
+      font-size:28px;
+      font-weight:bold;
+    ">
+      A kör zöld.
+    </p>
+  `,
+
+  recording_duration: 60000,
+
+  allow_playback: true,
+
+  done_button_label: "Felvétel befejezése"
+};
+
+timeline.push(contrastColourRecording);
+
+
+
+
+/* =========================
+   CORRECTIVE COLOUR RECORDING
+   ========================= */
+
+const correctiveColourRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+  data: {
+    recording_name: "colour_corrective",
+    elicitation_question: "A négyszög zöld, ugye?",
+    target_sentence: "Nem. A kör zöld."
+  },
+
+  stimulus: `
+    <h2>Felolvasási feladat</h2>
+
+    <canvas
+      id="colour-reminder"
+      width="300"
+      height="120"
+      style="
+        border:1px solid #999;
+        display:block;
+        margin:15px auto;
+      ">
+    </canvas>
+
+    <button id="replay-colour">
+      Animáció újrajátszása
+    </button>
+
+ <img
+      src="x"
+      style="display:none"
+      onerror="
+        const c = document.getElementById('colour-reminder');
+        const ctx = c.getContext('2d');
+        const replayBtn = document.getElementById('replay-colour');
+
+        let running = false;
+
+        function animate(){
+
+          running = true;
+
+          function drawFrame(){
+
+            ctx.clearRect(0,0,300,120);
+
+            /* green circle */
+
+            ctx.fillStyle = '#2ca02c';
+
+            ctx.beginPath();
+            ctx.arc(
+              70,
+              70,
+              30,
+              0,
+              2 * Math.PI
+            );
+            ctx.fill();
+
+            /* red square */
+
+            ctx.fillStyle = '#d62828';
+
+            ctx.fillRect(
+              170,
+              40,
+              60,
+              60
+            );
+
+            running = false;
+
+          }
+
+          drawFrame();
+
+        }
+
+        replayBtn.onclick = function(){
+
+          if(running) return;
+
+          animate();
+
+        };
+
+        animate();
+      "
+    >
+    <p>
+      A hangfelvétel elkezdődött. Kérjük, olvassa fel a mondatot
+     háromszor.
+    </p>
+
+    <p>
+      Az ismétlések között tartson
+      3–5 másodperc szünetet.
+    </p>
+
+    <p style="
+      font-size:20px;
+      color:#444;
+      margin-bottom:12px;
+    ">
+      A négyszög zöld, ugye?
+    </p>
+
+    <p style="
+      font-size:28px;
+      font-weight:bold;
+    ">
+      Nem. A kör zöld.
+    </p>
+  `,
+
+  recording_duration: 60000,
+
+  allow_playback: true,
+
+  done_button_label: "Felvétel befejezése"
+};
+
+timeline.push(correctiveColourRecording);
+
+
+
+/* =========================
+   EATING ANIMATION DEMO
+   ========================= */
+
+const eatingDemo = {
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let squareX = 500;
+      let mouthOpen = 0;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle = "#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* mouth animation */
+
+        mouthOpen =
+          squareX > 270
+            ? 0.45 + 0.12 * Math.sin(squareX * 0.08)
+            : 0;
+
+        /* large green circle */
+
+        ctx.fillStyle = "#2ca02c";
+
+        ctx.beginPath();
+        ctx.moveTo(220,210);
+
+        ctx.arc(
+          220,
+          210,
+          75,
+          mouthOpen,
+          2 * Math.PI - mouthOpen
+        );
+
+        ctx.closePath();
+        ctx.fill();
+
+        /* small red square */
+
+        if(squareX > 270){
+
+          ctx.fillStyle = "#d62828";
+
+          ctx.fillRect(
+            squareX + 15,
+            165,
+            90,
+            90
+          );
+
+        }
+
+        ctx.restore();
+
+        if(squareX > 270){
+
+          squareX -= 4;
+
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          /* circle after eating */
+
+          ctx.clearRect(0,0,canvas.width,canvas.height);
+
+          ctx.fillStyle = "#222";
+          ctx.fillRect(40,40,720,350);
+
+          ctx.fillStyle = "white";
+          ctx.fillRect(55,55,690,320);
+
+          ctx.save();
+
+          ctx.beginPath();
+          ctx.rect(55,55,690,320);
+          ctx.clip();
+
+          ctx.fillStyle = "#2ca02c";
+
+          ctx.beginPath();
+          ctx.arc(
+            220,
+            210,
+            75,
+            0,
+            2 * Math.PI
+          );
+          ctx.fill();
+
+          ctx.restore();
+
+          animationRunning = false;
+
+          if(replayStarted){
+
+            const buttons =
+              document.querySelectorAll("button");
+
+            const continueButton =
+              buttons[buttons.length - 1];
+
+            continueButton.disabled = false;
+            continueButton.style.opacity = "1";
+            continueButton.style.cursor = "pointer";
+
+            statusText.style.color = "#008800";
+
+            statusText.innerHTML =
+              "Az animáció újrajátszása megtörtént. Folytathatja a feladatot.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton = document.createElement("button");
+
+    replayButton.innerText =
+      "Animáció újrajátszása";
+
+    replayButton.style.marginTop = "15px";
+
+    replayButton.onclick = function(){
+
+      if(animationRunning) return;
+
+      replayStarted = true;
+
+      statusText.style.color = "#aa0000";
+
+      statusText.innerHTML =
+        "Az animáció újrajátszása folyamatban van...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(
+      document.createElement("br")
+    );
+
+    canvas.parentElement.appendChild(
+      replayButton
+    );
+
+    /* text */
+
+    const textDiv = document.createElement("div");
+
+    textDiv.innerHTML = `
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Mi történt?
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          margin-bottom:18px;
+        ">
+          A kör megette a négyszöget.
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+        ">
+          Nézze meg az animációt, majd olvassa el magában a mondatot.
+        </p>
+
+      </div>
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText = document.createElement("p");
+
+    statusText.style.marginTop = "15px";
+    statusText.style.fontWeight = "bold";
+    statusText.style.color = "#aa0000";
+
+    statusText.innerHTML =
+      "Kérjük, játssza le még egyszer az animációt a folytatáshoz.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(() => {
+
+      const buttons =
+        document.querySelectorAll("button");
+
+      if(buttons.length > 1){
+
+        const continueButton =
+          buttons[buttons.length - 1];
+
+        continueButton.disabled = true;
+        continueButton.style.opacity = "0.5";
+        continueButton.style.cursor = "not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Continue"]
+
+};
+
+timeline.push(eatingDemo);
+
+
+
+/* =========================
+   EATING RECORDING
+   ========================= */
+
+const eatingRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+  data: {
+    recording_name: "eat",
+    elicitation_question: "Mi történt?",
+    target_sentence: "A kör megette a négyszöget."
+  },
+
+  stimulus: `
+    <h2>Felolvasási feladat</h2>
+
+    <canvas
+      id="eat-reminder"
+      width="300"
+      height="120"
+      style="
+        border:1px solid #999;
+        display:block;
+        margin:15px auto;
+      ">
+    </canvas>
+
+    <button id="replay-eat">
+      Animáció újrajátszása
+    </button>
+
+    <img
+      src="x"
+      style="display:none"
+      onerror="
+        const c = document.getElementById('eat-reminder');
+        const ctx = c.getContext('2d');
+        const replayBtn = document.getElementById('replay-eat');
+
+        let running = false;
+
+        function animate(){
+
+          running = true;
+
+          let mouth = 0;
+          let squareX = 220;
+let frame = 0;
+
+          function drawFrame(){
+
+frame++;
+
+if (squareX > 105) {
+
+  mouth = (frame % 12 < 6) ? 0.35 : 0;
+
+} else {
+
+  mouth = 0;
+
+}
+            ctx.clearRect(0,0,300,120);
+
+            /* large circle */
+
+            ctx.fillStyle = '#2ca02c';
+
+            ctx.beginPath();
+            ctx.moveTo(80,70);
+
+            ctx.arc(
+              80,
+              70,
+              37.5,
+              mouth,
+              2*Math.PI - mouth
+            );
+
+            ctx.closePath();
+            ctx.fill();
+
+            /* small square */
+
+            if(squareX > 105){
+
+              ctx.fillStyle = '#d62828';
+
+              ctx.fillRect(
+                squareX + 7.5,
+                47.5,
+                45,
+                45
+              );
+
+            }
+
+            if(squareX > 105){
+
+  squareX -= 2;
+
+  requestAnimationFrame(drawFrame);
+
+} else {
+
+  running = false;
+
+}
+       
+
+          }
+
+          drawFrame();
+
+        }
+
+        replayBtn.onclick = function(){
+
+          if(running) return;
+
+          animate();
+
+        };
+
+        animate();
+      "
+    >
+
+    <p>
+      A hangfelvétel elkezdődött. Kérjük, olvassa fel a mondatot
+     háromszor.
+    </p>
+
+    <p>
+      Az ismétlések között tartson
+      3–5 másodperc szünetet.
+    </p>
+
+    <p style="
+      font-size:20px;
+      color:#444;
+      margin-bottom:12px;
+    ">
+      Mi történt?
+    </p>
+
+    <p style="
+      font-size:28px;
+      font-weight:bold;
+    ">
+      A kör megette a négyszöget.
+    </p>
+  `,
+
+  recording_duration: 60000,
+
+  allow_playback: true,
+
+  done_button_label: "Felvétel befejezése"
+};
+
+timeline.push(eatingRecording);
+
+
+
+
+/* =========================
+   CORRECTIVE EATING RECORDING
+   ========================= */
+
+const eatingCorrectiveRecording = {
+  type: jsPsychHtmlAudioResponse,
+
+  data: {
+    recording_name: "eat_corrective",
+    elicitation_question: "A négyszög ette meg a kört, ugye?",
+    target_sentence: "Nem. A kör ette meg a négyszöget."
+  },
+
+  stimulus: `
+    <h2>Felolvasási feladat</h2>
+
+    <canvas
+      id="eat-reminder"
+      width="300"
+      height="120"
+      style="
+        border:1px solid #999;
+        display:block;
+        margin:15px auto;
+      ">
+    </canvas>
+
+    <button id="replay-eat">
+      Animáció újrajátszása
+    </button>
+
+    <img
+      src="x"
+      style="display:none"
+      onerror="
+        const c = document.getElementById('eat-reminder');
+        const ctx = c.getContext('2d');
+        const replayBtn = document.getElementById('replay-eat');
+
+        let running = false;
+
+        function animate(){
+
+          running = true;
+
+          let mouth = 0;
+          let squareX = 220;
+          let frame = 0;
+
+          function drawFrame(){
+
+            frame++;
+
+            if (squareX > 105) {
+
+              mouth = (frame % 12 < 6) ? 0.35 : 0;
+
+            } else {
+
+              mouth = 0;
+
+            }
+
+            ctx.clearRect(0,0,300,120);
+
+            /* large circle */
+
+            ctx.fillStyle = '#2ca02c';
+
+            ctx.beginPath();
+            ctx.moveTo(80,70);
+
+            ctx.arc(
+              80,
+              70,
+              37.5,
+              mouth,
+              2*Math.PI - mouth
+            );
+
+            ctx.closePath();
+            ctx.fill();
+
+            /* small square */
+
+            if(squareX > 105){
+
+              ctx.fillStyle = '#d62828';
+
+              ctx.fillRect(
+                squareX + 7.5,
+                47.5,
+                45,
+                45
+              );
+
+            }
+
+            if(squareX > 105){
+
+              squareX -= 2;
+
+              requestAnimationFrame(drawFrame);
+
+            } else {
+
+              running = false;
+
+            }
+
+          }
+
+          drawFrame();
+
+        }
+
+        replayBtn.onclick = function(){
+
+          if(running) return;
+
+          animate();
+
+        };
+
+        animate();
+      "
+    >
+
+    <p>
+      A hangfelvétel elkezdődött. Kérjük, olvassa fel a mondatot háromszor.
+    </p>
+
+    <p>
+      Az ismétlések között tartson
+      3–5 másodperc szünetet.
+    </p>
+
+    <p style="
+      font-size:20px;
+      color:#444;
+      margin-bottom:12px;
+    ">
+      A négyszög ette meg a kört, ugye?
+    </p>
+
+    <p style="
+      font-size:28px;
+      font-weight:bold;
+    ">
+      Nem. A kör ette meg a négyszöget.
+    </p>
+  `,
+
+  recording_duration: 60000,
+
+  allow_playback: true,
+
+  done_button_label: "Felvétel befejezése"
+};
+
+timeline.push(eatingCorrectiveRecording);
+
+
+
+/* =========================
+   GOODBYE SCREEN
+   ========================= */
+
+const goodbye = {
+  type: jsPsychHtmlButtonResponse,
+  stimulus: `
+    <h2>Thank You</h2>
+
+    <p>
+      This concludes the current demo.
+    </p>
+
+    <p>
+      Thank you for testing the prototype.
+    </p>
+
+    <p>
+      No experimental data are being collected in this version.
+    </p>
+  `,
+  choices: ["Finish"]
+};
+
+timeline.push(goodbye);
+
+jsPsych.run(timeline);
+
+</script>
+</html>

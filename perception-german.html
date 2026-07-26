@@ -1,0 +1,3031 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<title>Animation Perception Demo</title>
+
+<link href="jspsych/dist/jspsych.css" rel="stylesheet">
+
+<script src="jspsych/dist/jspsych.js"></script>
+
+<script src="jspsych/dist/plugin-html-button-response.js"></script>
+<script src="jspsych/dist/plugin-canvas-button-response.js"></script>
+<script src="jspsych/dist/plugin-html-slider-response.js"></script>
+
+
+
+</head>
+
+<body></body>
+
+<script>
+
+const jsPsych = initJsPsych({
+
+  on_finish: function () {
+
+    if (typeof jatos !== "undefined") {
+
+      jatos.submitResultData(
+        jsPsych.data.get().json()
+      );
+
+    } else {
+
+      jsPsych.data.get().localSave(
+        "json",
+        "perception_results.json"
+      );
+
+    }
+
+  }
+
+});
+
+let timeline = [];
+
+
+
+
+
+
+
+
+/* =========================
+   INTRODUCTION
+   ========================= */
+
+const intro = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+<h1>Demonstration eines Animations-basierten Sprachwahrnehmungsexperiments</h1>
+
+<p>
+Willkommen! Diese Demonstration zeigt ein browserbasiertes
+Sprachwahrnehmungsexperiment, das mit <strong>jsPsych</strong>
+entwickelt wurde.
+</p>
+
+<p>
+In jedem Durchgang sehen Sie zunächst eine kurze Animation.
+Anschließend hören Sie einen Satz, der das dargestellte Ereignis
+beschreibt.
+</p>
+
+<p>
+Ihre Aufgabe besteht darin zu beurteilen, wie gut der Satz
+zur Animation passt.
+</p>
+
+<p>
+Das erste Demonstrationsitem stellt mehrere Antwortparadigmen vor,
+die in der experimentellen Psycholinguistik häufig verwendet werden:
+</p>
+
+<ul style="text-align:left; display:inline-block;">
+<li>5-stufige Likert-Bewertung</li>
+<li>Kontinuierliche Schieberegler-Bewertung</li>
+<li>Forced-Choice-Aufgaben</li>
+<li>Ranking-Aufgaben</li>
+</ul>
+
+<p>
+Alle übrigen Items verwenden eine standardmäßige
+5-stufige Likert-Bewertung.
+</p>
+
+<h3>Anweisungen</h3>
+
+<ul style="text-align:left; display:inline-block;">
+<li>Führen Sie das Experiment möglichst in einer ruhigen Umgebung durch.</li>
+<li>Verwenden Sie nach Möglichkeit Kopfhörer.</li>
+<li>Betrachten Sie jede Animation aufmerksam.</li>
+<li>Sie können die Animation vor dem Fortfahren erneut abspielen.</li>
+<li>Hören Sie sich den Audiostimulus an, bevor Sie antworten.</li>
+<li>Antworten Sie entsprechend Ihrer eigenen Einschätzung.</li>
+</ul>
+
+<p>
+<strong>Hinweis zum Audio:</strong><br>
+In dieser Demonstration wird absichtlich dieselbe Platzhalter-Audiodatei
+(<em>audioplaceholder.wav</em>) für alle Durchgänge verwendet.
+</p>
+
+<p>
+Dieses Repository dient als wiederverwendbare Vorlage.
+Sie können die Animationen, Audiodateien,
+Anweisungen und Antwortparadigmen beliebig durch Ihre eigenen
+experimentellen Materialien ersetzen.
+</p>
+
+`,
+
+choices:["Weiter"]
+
+};
+
+timeline.push(intro);
+
+
+
+/* =========================
+   GDPR
+   ========================= */
+
+const gdpr = {
+
+type: jsPsychHtmlButtonResponse,
+
+stimulus: `
+
+<h2>DSGVO / Platzhalter für Datenschutzinformationen</h2>
+
+<p><strong>PLATZHALTERTEXT</strong></p>
+
+<p>
+Dieser Abschnitt wird später die offiziellen Informationen
+für Teilnehmende sowie die nach der DSGVO erforderliche
+Datenschutzerklärung enthalten.
+</p>
+
+<p>
+Die endgültige Version umfasst in der Regel:
+</p>
+
+<ul style="text-align:left; display:inline-block;">
+<li>Zweck der Studie</li>
+<li>Informationen zum Verantwortlichen für die Datenverarbeitung</li>
+<li>Verfahren zur Datenspeicherung</li>
+<li>Informationen zum Widerruf der Teilnahme</li>
+<li>Rechte der Teilnehmenden</li>
+<li>Kontaktinformationen</li>
+</ul>
+
+<p>
+Diese Seite dient ausschließlich als Platzhalter
+für Demonstrationszwecke.
+</p>
+
+`,
+
+choices:["Ich habe verstanden"]
+
+};
+
+timeline.push(gdpr);
+
+
+
+
+
+
+/* =========================
+   TRIANGLE ANIMATION DEMO
+   ========================= */
+
+const triangleAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let x = -50;
+      const targetX = 260;
+
+      function drawFrame() {
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle = "#222";
+        ctx.fillRect(40, 40, 720, 350);
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(55, 55, 690, 320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55, 55, 690, 320);
+        ctx.clip();
+
+        /* triangle */
+
+        ctx.fillStyle = "#3a66ff";
+
+        ctx.beginPath();
+        ctx.moveTo(x, 230);
+        ctx.lineTo(x + 40, 170);
+        ctx.lineTo(x + 80, 230);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+
+        if (x < targetX) {
+
+          x += 3;
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning = false;
+
+          if (replayStarted) {
+
+            const buttons = document.querySelectorAll("button");
+
+            const continueButton = buttons[buttons.length - 1];
+
+            continueButton.disabled = false;
+            continueButton.style.opacity = "1";
+            continueButton.style.cursor = "pointer";
+
+            statusText.style.color = "#008800";
+
+            statusText.innerHTML =
+              "Die Wiedergabe wurde abgeschlossen. Sie können nun mit der Wahrnehmungsaufgabe fortfahren.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* automatic first playback */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton = document.createElement("button");
+
+    replayButton.innerText = "Animation erneut abspielen";
+    replayButton.style.marginTop = "15px";
+
+    replayButton.onclick = function() {
+
+      if (animationRunning) return;
+
+      replayStarted = true;
+
+      statusText.style.color = "#aa0000";
+
+      statusText.innerHTML =
+        "Animation wird erneut abgespielt...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* target sentence */
+
+    const textDiv = document.createElement("div");
+
+    textDiv.innerHTML = `
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Sehen Sie sich die Animation aufmerksam an.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Zielsatz
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „Ein Dreieck betrat die Szene.“
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          Auf der nächsten Seite wird eine Platzhalter-Audioaufnahme
+          abgespielt, die diesem Satz entspricht. Anschließend bearbeiten
+          Sie eine oder mehrere Wahrnehmungsaufgaben.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText = document.createElement("p");
+
+    statusText.style.marginTop = "15px";
+    statusText.style.fontWeight = "bold";
+    statusText.style.color = "#aa0000";
+
+    statusText.innerHTML =
+      "Bitte spielen Sie die Animation einmal erneut ab, bevor Sie fortfahren.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(() => {
+
+      const buttons = document.querySelectorAll("button");
+
+      if (buttons.length > 1) {
+
+        const continueButton = buttons[buttons.length - 1];
+
+        continueButton.disabled = true;
+        continueButton.style.opacity = "0.5";
+        continueButton.style.cursor = "not-allowed";
+
+      }
+
+    }, 100);
+
+  },
+
+  choices: ["Weiter"]
+
+};
+
+timeline.push(triangleAnimationDemo);
+
+
+
+/* =========================
+   TRIANGLE PERCEPTION
+   ========================= */
+
+const trianglePerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Satzbewertung</h2>
+
+      <p style="font-size:18px;">
+        Testsatz
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Ein Dreieck erschien in der Szene.“
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        Ihr Browser unterstützt die Audiowiedergabe nicht.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hören Sie sich die Aufnahme oben an.
+      </p>
+
+      <p style="font-size:18px;">
+        Wie gut passt der gesprochene Satz zur Animation?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Sehr schlechte Antwort<br>
+        5 = Sehr gute Antwort
+      </p>
+
+    </div>
+
+  `,
+
+  choices: [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(trianglePerception);
+
+
+/* =========================
+   TRIANGLE SLIDER RATING
+   ========================= */
+
+const triangleSlider = {
+
+  type: jsPsychHtmlSliderResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Bewertung mit Schieberegler</h2>
+
+      <p><b>Testsatz</b></p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Ein Dreieck erschien in der Szene.“
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+      </audio>
+
+      <br><br>
+
+      <p>
+        Bewegen Sie den Schieberegler, um zu bewerten,
+        wie gut die Aufnahme ist.
+      </p>
+
+    </div>
+
+  `,
+
+  labels: [
+    "Sehr schlecht",
+    "Sehr gut"
+  ],
+
+  min: 0,
+  max: 100,
+  slider_start: 50,
+
+  button_label: "Weiter"
+
+};
+
+timeline.push(triangleSlider);
+
+
+
+
+
+
+
+
+
+/* =========================
+   TRIANGLE FORCED CHOICE
+   ========================= */
+
+const triangleForcedChoice = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+<div style="
+max-width:800px;
+margin:auto;
+text-align:center;
+">
+
+<h2>Forced Choice</h2>
+
+<p style="
+font-size:28px;
+font-weight:bold;
+color:#003366;
+">
+„Ein Dreieck erschien in der Szene.“
+</p>
+
+<p>
+Welche Aufnahme klingt besser?
+</p>
+
+<table style="
+margin:auto;
+border-spacing:50px 20px;
+">
+
+<tr>
+
+<td>
+
+<b>Aufnahme A</b><br><br>
+
+<audio controls>
+<source src="audioplaceholder.wav" type="audio/wav">
+</audio>
+
+</td>
+
+<td>
+
+<b>Aufnahme B</b><br><br>
+
+<audio controls>
+<source src="audioplaceholder.wav" type="audio/wav">
+</audio>
+
+</td>
+
+</tr>
+
+</table>
+
+</div>
+
+`,
+
+choices:[
+"Aufnahme A",
+"Aufnahme B"
+]
+
+};
+
+timeline.push(triangleForcedChoice);
+
+
+/* =========================
+   TRIANGLE RANKING
+   ========================= */
+
+const triangleRanking = {
+
+type: jsPsychHtmlButtonResponse,
+
+stimulus: `
+
+<div style="
+max-width:900px;
+margin:auto;
+text-align:center;
+">
+
+<h2>Ranking-Aufgabe</h2>
+
+<p style="
+font-size:28px;
+font-weight:bold;
+color:#003366;
+">
+„Ein Dreieck erschien in der Szene.“
+</p>
+
+<p>
+Hören Sie sich alle drei Aufnahmen an.
+Ordnen Sie sie anschließend von der besten bis zur schlechtesten.
+</p>
+
+<table style="
+margin:auto;
+border-spacing:40px 20px;
+">
+
+<tr>
+
+<td>
+
+<b>Aufnahme A</b><br><br>
+
+<audio controls>
+<source src="audioplaceholder.wav" type="audio/wav">
+</audio>
+
+<br><br>
+
+<select id="rankA">
+<option>1</option>
+<option>2</option>
+<option>3</option>
+</select>
+
+</td>
+
+<td>
+
+<b>Aufnahme B</b><br><br>
+
+<audio controls>
+<source src="audioplaceholder.wav" type="audio/wav">
+</audio>
+
+<br><br>
+
+<select id="rankB">
+<option>1</option>
+<option>2</option>
+<option>3</option>
+</select>
+
+</td>
+
+<td>
+
+<b>Aufnahme C</b><br><br>
+
+<audio controls>
+<source src="audioplaceholder.wav" type="audio/wav">
+</audio>
+
+<br><br>
+
+<select id="rankC">
+<option>1</option>
+<option>2</option>
+<option>3</option>
+</select>
+
+</td>
+
+</tr>
+
+</table>
+
+</div>
+
+`,
+
+choices:[
+"Weiter"
+],
+
+on_load: function(){
+
+  window.rankA = document.getElementById("rankA");
+  window.rankB = document.getElementById("rankB");
+  window.rankC = document.getElementById("rankC");
+
+},
+
+on_finish: function(data){
+
+  data.rankA = window.rankA.value;
+  data.rankB = window.rankB.value;
+  data.rankC = window.rankC.value;
+
+}
+
+};
+
+timeline.push(triangleRanking);
+
+
+
+
+
+/* =========================
+   RED SQUARE ANIMATION DEMO
+   ========================= */
+
+const squareAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let x = 800;
+      const targetX = 500;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* triangle already present */
+
+        ctx.fillStyle="#3a66ff";
+
+        ctx.beginPath();
+        ctx.moveTo(260,230);
+        ctx.lineTo(300,170);
+        ctx.lineTo(340,230);
+        ctx.closePath();
+        ctx.fill();
+
+        /* red square */
+
+        ctx.fillStyle="#d62828";
+
+        ctx.fillRect(
+          x,
+          150,
+          120,
+          120
+        );
+
+        ctx.restore();
+
+        if(x>targetX){
+
+          x-=3;
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning=false;
+
+          if(replayStarted){
+
+            const buttons=document.querySelectorAll("button");
+
+            const continueButton=buttons[buttons.length-1];
+
+            continueButton.disabled=false;
+            continueButton.style.opacity="1";
+            continueButton.style.cursor="pointer";
+
+            statusText.style.color="#008800";
+
+            statusText.innerHTML=
+              "Die Wiedergabe wurde abgeschlossen. Sie können nun mit der Wahrnehmungsaufgabe fortfahren.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animation erneut abspielen";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Animation wird erneut abgespielt...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Sehen Sie sich die Animation aufmerksam an.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Testsatz
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „Ein Quadrat erschien in der Szene.“
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          Auf der nächsten Seite wird eine Platzhalter-Audioaufnahme
+          abgespielt, die diesem Satz entspricht. Anschließend bearbeiten
+          Sie eine oder mehrere Wahrnehmungsaufgaben.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Bitte spielen Sie die Animation einmal erneut ab, bevor Sie fortfahren.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Weiter"]
+
+};
+
+timeline.push(squareAnimationDemo);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================
+   SQUARE PERCEPTION
+   ========================= */
+
+const squarePerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Satzbewertung</h2>
+
+      <p style="font-size:18px;">
+        Testsatz
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Ein Quadrat erschien in der Szene.“
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        Ihr Browser unterstützt die Audiowiedergabe nicht.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hören Sie sich die Aufnahme oben an.
+      </p>
+
+      <p style="font-size:18px;">
+        Wie gut passt der gesprochene Satz zur Animation?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Sehr schlechte Antwort<br>
+        5 = Sehr gute Antwort
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(squarePerception);
+
+
+
+
+
+/* =========================
+   PUSH ANIMATION DEMO
+   ========================= */
+
+const pushAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let squareX = 500;
+      let triangleX = 260;
+
+      const squareHome = 500;
+
+      let phase = 1;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* movement */
+
+        if(phase===1){
+
+          squareX-=4;
+
+          if(squareX<=340){
+            phase=2;
+          }
+
+        } else if(phase===2){
+
+          squareX-=4;
+          triangleX-=4;
+
+          if(triangleX<-100){
+            phase=3;
+          }
+
+        } else if(phase===3){
+
+          squareX+=4;
+
+          if(squareX>=squareHome){
+            squareX=squareHome;
+            phase=4;
+          }
+
+        }
+
+        /* triangle */
+
+        if(triangleX>-100){
+
+          ctx.fillStyle="#3a66ff";
+
+          ctx.beginPath();
+          ctx.moveTo(triangleX,230);
+          ctx.lineTo(triangleX+40,170);
+          ctx.lineTo(triangleX+80,230);
+          ctx.closePath();
+          ctx.fill();
+
+        }
+
+        /* square */
+
+        ctx.fillStyle="#d62828";
+        ctx.fillRect(squareX,150,120,120);
+
+        ctx.restore();
+
+        if(phase!==4){
+
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning=false;
+
+          if(replayStarted){
+
+            const buttons=document.querySelectorAll("button");
+
+            const continueButton=buttons[buttons.length-1];
+
+            continueButton.disabled=false;
+            continueButton.style.opacity="1";
+            continueButton.style.cursor="pointer";
+
+            statusText.style.color="#008800";
+
+            statusText.innerHTML=
+              "Die Wiedergabe wurde abgeschlossen. Sie können nun mit der Wahrnehmungsaufgabe fortfahren.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animation erneut abspielen";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Animation wird erneut abgespielt...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Sehen Sie sich die Animation aufmerksam an.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Testsatz
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „Das Quadrat schob das Dreieck aus der Szene.“
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          Auf der nächsten Seite wird eine Platzhalter-Audioaufnahme
+          abgespielt, die diesem Satz entspricht. Anschließend bearbeiten
+          Sie eine oder mehrere Wahrnehmungsaufgaben.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Bitte spielen Sie die Animation einmal erneut ab, bevor Sie fortfahren.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Weiter"]
+
+};
+
+timeline.push(pushAnimationDemo);
+
+/* =========================
+   PUSH PERCEPTION
+   ========================= */
+
+const pushPerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Satzbewertung</h2>
+
+      <p style="font-size:18px;">
+        Testsatz
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Das Quadrat schob das Dreieck aus der Szene.“
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        Ihr Browser unterstützt die Audiowiedergabe nicht.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hören Sie sich die Aufnahme oben an.
+      </p>
+
+      <p style="font-size:18px;">
+        Wie gut passt der gesprochene Satz zur Animation?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Sehr schlechte Antwort<br>
+        5 = Sehr gute Antwort
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(pushPerception);
+
+
+
+
+
+/* =========================
+   CIRCLE ANIMATION DEMO
+   ========================= */
+
+const circleAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let x = -60;
+      const targetX = 175;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* static red square */
+
+        ctx.fillStyle="#d62828";
+        ctx.fillRect(430,150,120,120);
+
+        /* green circle */
+
+        ctx.fillStyle="#2ca02c";
+
+        ctx.beginPath();
+        ctx.arc(
+          x,
+          210,
+          60,
+          0,
+          2*Math.PI
+        );
+        ctx.fill();
+
+        ctx.restore();
+
+        if(x<targetX){
+
+          x+=3;
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning=false;
+
+          if(replayStarted){
+
+            const buttons=document.querySelectorAll("button");
+
+            const continueButton=buttons[buttons.length-1];
+
+            continueButton.disabled=false;
+            continueButton.style.opacity="1";
+            continueButton.style.cursor="pointer";
+
+            statusText.style.color="#008800";
+
+            statusText.innerHTML=
+              "Die Wiedergabe wurde abgeschlossen. Sie können nun mit der Wahrnehmungsaufgabe fortfahren.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animation erneut abspielen";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Animation wird erneut abgespielt...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Sehen Sie sich die Animation aufmerksam an.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Testsatz
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „Ein Kreis erschien in der Szene.“
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          Auf der nächsten Seite wird eine Platzhalter-Audioaufnahme
+          abgespielt, die diesem Satz entspricht. Anschließend bearbeiten
+          Sie eine oder mehrere Wahrnehmungsaufgaben.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Bitte spielen Sie die Animation einmal erneut ab, bevor Sie fortfahren.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Weiter"]
+
+};
+
+timeline.push(circleAnimationDemo);
+
+
+
+
+
+
+/* =========================
+   CIRCLE PERCEPTION
+   ========================= */
+
+const circlePerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Satzbewertung</h2>
+
+      <p style="font-size:18px;">
+        Testsatz
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Ein Kreis erschien in der Szene.“
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        Ihr Browser unterstützt die Audiowiedergabe nicht.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hören Sie sich die Aufnahme oben an.
+      </p>
+
+      <p style="font-size:18px;">
+        Wie gut passt der gesprochene Satz zur Animation?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Sehr schlechte Antwort<br>
+        5 = Sehr gute Antwort
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(circlePerception);
+
+
+
+
+
+/* =========================
+   SQUARE JUMP ANIMATION DEMO
+   ========================= */
+
+const jumpAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      /* same positions as elsewhere */
+
+      const circleX = 175;
+      const squareX = 430;
+
+      let y = 150;
+      let velocity = -18;
+
+      const gravity = 0.9;
+      const ground = 150;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* green circle */
+
+        ctx.fillStyle="#2ca02c";
+
+        ctx.beginPath();
+        ctx.arc(
+          circleX,
+          210,
+          60,
+          0,
+          2*Math.PI
+        );
+        ctx.fill();
+
+        /* red square */
+
+        ctx.fillStyle="#d62828";
+
+        ctx.fillRect(
+          squareX,
+          y,
+          120,
+          120
+        );
+
+        ctx.restore();
+
+        velocity += gravity;
+        y += velocity;
+
+        if(y>=ground){
+
+          y=ground;
+
+          if(velocity>0){
+
+            animationRunning=false;
+
+            if(replayStarted){
+
+              const buttons=document.querySelectorAll("button");
+
+              const continueButton=buttons[buttons.length-1];
+
+              continueButton.disabled=false;
+              continueButton.style.opacity="1";
+              continueButton.style.cursor="pointer";
+
+              statusText.style.color="#008800";
+
+              statusText.innerHTML=
+                "Die Wiedergabe wurde abgeschlossen. Sie können nun mit der Wahrnehmungsaufgabe fortfahren.";
+
+            }
+
+            return;
+
+          }
+
+        }
+
+        requestAnimationFrame(drawFrame);
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animation erneut abspielen";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Animation wird erneut abgespielt...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Sehen Sie sich die Animation aufmerksam an.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Testsatz
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „Das Quadrat sprang.“
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          Auf der nächsten Seite wird eine Platzhalter-Audioaufnahme
+          abgespielt, die diesem Satz entspricht. Anschließend bearbeiten
+          Sie eine oder mehrere Wahrnehmungsaufgaben.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Bitte spielen Sie die Animation einmal erneut ab, bevor Sie fortfahren.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Weiter"]
+
+};
+
+timeline.push(jumpAnimationDemo);
+/* =========================
+   SQUARE JUMP PERCEPTION
+   ========================= */
+
+const jumpPerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Satzbewertung</h2>
+
+      <p style="font-size:18px;">
+        Testsatz
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Das Quadrat sprang.“
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        Ihr Browser unterstützt die Audiowiedergabe nicht.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hören Sie sich die Aufnahme oben an.
+      </p>
+
+      <p style="font-size:18px;">
+        Wie gut passt der gesprochene Satz zur Animation?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Sehr schlechte Antwort<br>
+        5 = Sehr gute Antwort
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(jumpPerception);
+
+
+
+
+
+
+
+
+/* =========================
+   SIZE CHANGE ANIMATION DEMO
+   ========================= */
+
+const sizeAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let circleRadius = 45;
+      let squareSize = 120;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* growing green circle */
+
+        ctx.fillStyle="#2ca02c";
+
+        ctx.beginPath();
+        ctx.arc(
+          220,
+          210,
+          circleRadius,
+          0,
+          2*Math.PI
+        );
+        ctx.fill();
+
+        /* shrinking red square */
+
+        ctx.fillStyle="#d62828";
+
+        ctx.fillRect(
+          480 + (120-squareSize)/2,
+          150 + (120-squareSize)/2,
+          squareSize,
+          squareSize
+        );
+
+        ctx.restore();
+
+        if(circleRadius < 75){
+
+          circleRadius += 0.5;
+          squareSize -= 0.5;
+
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning = false;
+
+          if(replayStarted){
+
+            const buttons=document.querySelectorAll("button");
+
+            const continueButton=buttons[buttons.length-1];
+
+            continueButton.disabled=false;
+            continueButton.style.opacity="1";
+            continueButton.style.cursor="pointer";
+
+            statusText.style.color="#008800";
+
+            statusText.innerHTML=
+              "Die Wiedergabe wurde abgeschlossen. Sie können nun mit der Wahrnehmungsaufgabe fortfahren.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animation erneut abspielen";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Animation wird erneut abgespielt...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Sehen Sie sich die Animation aufmerksam an.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Testsatz
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „Der Kreis wurde größer und das Quadrat wurde kleiner.“
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          Auf der nächsten Seite wird eine Platzhalter-Audioaufnahme
+          abgespielt, die diesem Satz entspricht. Anschließend bearbeiten
+          Sie eine oder mehrere Wahrnehmungsaufgaben.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Bitte spielen Sie die Animation einmal erneut ab, bevor Sie fortfahren.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Weiter"]
+
+};
+
+timeline.push(sizeAnimationDemo);
+
+/* =========================
+   SIZE CHANGE PERCEPTION
+   ========================= */
+
+const sizePerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Satzbewertung</h2>
+
+      <p style="font-size:18px;">
+        Testsatz
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Der Kreis wurde größer und das Quadrat wurde kleiner.“
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        Ihr Browser unterstützt die Audiowiedergabe nicht.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hören Sie sich die Aufnahme oben an.
+      </p>
+
+      <p style="font-size:18px;">
+        Wie gut passt der gesprochene Satz zur Animation?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Sehr schlechte Antwort<br>
+        5 = Sehr gute Antwort
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(sizePerception);
+
+
+
+
+
+
+
+
+
+/* =========================
+   COLOUR ANIMATION DEMO
+   ========================= */
+
+const colourAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let frame = 0;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* green circle */
+
+        ctx.fillStyle="#2ca02c";
+
+        ctx.beginPath();
+        ctx.arc(
+          175,
+          210,
+          75,
+          0,
+          2*Math.PI
+        );
+        ctx.fill();
+
+        /* red square */
+
+        ctx.fillStyle="#d62828";
+
+        ctx.fillRect(
+          445,
+          165,
+          90,
+          90
+        );
+
+        ctx.restore();
+
+        frame++;
+
+        if(frame<60){
+
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning=false;
+
+          if(replayStarted){
+
+            const buttons=document.querySelectorAll("button");
+
+            const continueButton=buttons[buttons.length-1];
+
+            continueButton.disabled=false;
+            continueButton.style.opacity="1";
+            continueButton.style.cursor="pointer";
+
+            statusText.style.color="#008800";
+
+            statusText.innerHTML=
+              "Die Wiedergabe wurde abgeschlossen. Sie können nun mit der Wahrnehmungsaufgabe fortfahren.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animation erneut abspielen";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Animation wird erneut abgespielt...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Sehen Sie sich die Animation aufmerksam an.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Testsatz
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „Das Quadrat ist rot.“
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          Auf der nächsten Seite wird eine Platzhalter-Audioaufnahme
+          abgespielt, die diesem Satz entspricht. Anschließend bearbeiten
+          Sie eine oder mehrere Wahrnehmungsaufgaben.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Bitte spielen Sie die Animation einmal erneut ab, bevor Sie fortfahren.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Weiter"]
+
+};
+
+timeline.push(colourAnimationDemo);
+
+/* =========================
+   COLOUR PERCEPTION
+   ========================= */
+
+const colourPerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Satzbewertung</h2>
+
+      <p style="font-size:18px;">
+        Testsatz
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Das Quadrat ist rot.“
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        Ihr Browser unterstützt die Audiowiedergabe nicht.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hören Sie sich die Aufnahme oben an.
+      </p>
+
+      <p style="font-size:18px;">
+        Wie gut passt der gesprochene Satz zur Animation?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Sehr schlechte Antwort<br>
+        5 = Sehr gute Antwort
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(colourPerception);
+
+
+
+
+
+
+
+/* =========================
+   EATING ANIMATION DEMO
+   ========================= */
+
+const eatingAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let squareX = 500;
+      let mouthOpen = 0;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* mouth animation */
+
+        mouthOpen =
+          squareX > 270
+            ? 0.45 + 0.12 * Math.sin(squareX * 0.08)
+            : 0;
+
+        /* green circle */
+
+        ctx.fillStyle="#2ca02c";
+
+        ctx.beginPath();
+        ctx.moveTo(220,210);
+
+        ctx.arc(
+          220,
+          210,
+          75,
+          mouthOpen,
+          2*Math.PI-mouthOpen
+        );
+
+        ctx.closePath();
+        ctx.fill();
+
+        /* red square */
+
+        if(squareX > 270){
+
+          ctx.fillStyle="#d62828";
+
+          ctx.fillRect(
+            squareX + 15,
+            165,
+            90,
+            90
+          );
+
+        }
+
+        ctx.restore();
+
+        if(squareX > 270){
+
+          squareX -= 4;
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          /* final frame */
+
+          ctx.clearRect(0,0,canvas.width,canvas.height);
+
+          ctx.fillStyle="#222";
+          ctx.fillRect(40,40,720,350);
+
+          ctx.fillStyle="white";
+          ctx.fillRect(55,55,690,320);
+
+          ctx.save();
+
+          ctx.beginPath();
+          ctx.rect(55,55,690,320);
+          ctx.clip();
+
+          ctx.fillStyle="#2ca02c";
+
+          ctx.beginPath();
+          ctx.arc(
+            220,
+            210,
+            75,
+            0,
+            2*Math.PI
+          );
+          ctx.fill();
+
+          ctx.restore();
+
+          animationRunning=false;
+
+          if(replayStarted){
+
+            const buttons=document.querySelectorAll("button");
+
+            const continueButton=buttons[buttons.length-1];
+
+            continueButton.disabled=false;
+            continueButton.style.opacity="1";
+            continueButton.style.cursor="pointer";
+
+            statusText.style.color="#008800";
+
+            statusText.innerHTML=
+              "Die Wiedergabe wurde abgeschlossen. Sie können nun mit der Wahrnehmungsaufgabe fortfahren.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animation erneut abspielen";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Animation wird erneut abgespielt...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Sehen Sie sich die Animation aufmerksam an.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Testsatz
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „Der Kreis fraß das Quadrat.“
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          Auf der nächsten Seite wird eine Platzhalter-Audioaufnahme
+          abgespielt, die diesem Satz entspricht. Anschließend bearbeiten
+          Sie eine oder mehrere Wahrnehmungsaufgaben.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Bitte spielen Sie die Animation einmal erneut ab, bevor Sie fortfahren.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Weiter"]
+
+};
+
+timeline.push(eatingAnimationDemo);
+/* =========================
+   EATING PERCEPTION
+   ========================= */
+
+const eatingPerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Satzbewertung</h2>
+
+      <p style="font-size:18px;">
+        Testsatz
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Der Kreis fraß das Quadrat.“
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        Ihr Browser unterstützt die Audiowiedergabe nicht.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hören Sie sich die Aufnahme oben an.
+      </p>
+
+      <p style="font-size:18px;">
+        Wie gut passt der gesprochene Satz zur Animation?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Sehr schlechte Antwort<br>
+        5 = Sehr gute Antwort
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(eatingPerception);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================
+   GOODBYE
+   ========================= */
+
+const goodbye = {
+
+type: jsPsychHtmlButtonResponse,
+
+stimulus: `
+
+<h1>Vielen Dank!</h1>
+
+<p>
+Sie haben die Demonstration abgeschlossen.
+</p>
+
+<p>
+Dieses Repository zeigt, wie animationsbasierte
+Wahrnehmungsexperimente im Browser mit
+<strong>jsPsych</strong> umgesetzt werden können.
+</p>
+
+<p>
+Die Demonstration enthält wiederverwendbare Beispiele für:
+</p>
+
+<ul style="text-align:left; display:inline-block;">
+<li>Animierte visuelle Stimuli</li>
+<li>Audiopräsentation</li>
+<li>5-stufige Likert-Bewertungen</li>
+<li>Kontinuierliche Bewertungen mit Schieberegler</li>
+<li>Forced-Choice-Paradigmen</li>
+<li>Ranking-Aufgaben</li>
+</ul>
+
+<p>
+Sie können den Code gerne für Ihre eigenen Experimente anpassen.
+</p>
+
+<p>
+Sie können dieses Browserfenster nun schließen.
+</p>
+
+`,
+
+choices:["Beenden"]
+
+};
+
+timeline.push(goodbye);
+
+
+
+/* =========================
+   RUN
+   ========================= */
+
+jsPsych.run(timeline);
+
+</script>
+
+</html>

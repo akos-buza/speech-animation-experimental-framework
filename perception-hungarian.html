@@ -1,0 +1,3030 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<title>Animation Perception Demo</title>
+
+<link href="jspsych/dist/jspsych.css" rel="stylesheet">
+
+<script src="jspsych/dist/jspsych.js"></script>
+
+<script src="jspsych/dist/plugin-html-button-response.js"></script>
+<script src="jspsych/dist/plugin-canvas-button-response.js"></script>
+<script src="jspsych/dist/plugin-html-slider-response.js"></script>
+
+
+
+</head>
+
+<body></body>
+
+<script>
+
+const jsPsych = initJsPsych({
+
+  on_finish: function () {
+
+    if (typeof jatos !== "undefined") {
+
+      jatos.submitResultData(
+        jsPsych.data.get().json()
+      );
+
+    } else {
+
+      jsPsych.data.get().localSave(
+        "json",
+        "perception_results.json"
+      );
+
+    }
+
+  }
+
+});
+
+let timeline = [];
+
+/* =========================
+   BEVEZETÉS
+   ========================= */
+
+const intro = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+<h1>Animációalapú nyelvi észlelési kísérlet – Bemutató</h1>
+
+<p>
+Üdvözöljük! Ez a bemutató egy böngészőalapú nyelvi észlelési
+kísérletet szemléltet, amely a <strong>jsPsych</strong> keretrendszerrel készült.
+</p>
+
+<p>
+Minden próbában először egy rövid animációt fog látni.
+Ezt követően meghallgat egy mondatot, amely leírja az eseményt.
+</p>
+
+<p>
+Az Ön feladata annak megítélése, hogy a hallott mondat
+mennyire illik az animációhoz.
+</p>
+
+<p>
+Az első bemutatóelem az experimentális pszicholingvisztikában
+gyakran alkalmazott válaszadási paradigmák közül mutat be néhányat:
+</p>
+
+<ul style="text-align:left; display:inline-block;">
+<li>5 fokozatú Likert-skála</li>
+<li>Folyamatos értékelés csúszkával</li>
+<li>Forced-Choice paradigma</li>
+<li>Rangsorolási feladat</li>
+</ul>
+
+<p>
+Az összes további feladat egy hagyományos
+5 fokozatú Likert-skálás értékelést használ.
+</p>
+
+<h3>Útmutató</h3>
+
+<ul style="text-align:left; display:inline-block;">
+<li>A kísérletet lehetőleg csendes környezetben végezze el.</li>
+<li>Ha lehetséges, használjon fejhallgatót.</li>
+<li>Figyelmesen nézze végig az összes animációt.</li>
+<li>Az animációt a továbblépés előtt újra lejátszhatja.</li>
+<li>A válaszadás előtt hallgassa meg a hangfelvételt.</li>
+<li>Válaszait saját megítélése alapján adja meg.</li>
+</ul>
+
+<p>
+<strong>Megjegyzés a hangfelvételről:</strong><br>
+Ebben a bemutatóban minden próbában ugyanaz a helykitöltő hangfájl
+(<em>audioplaceholder.wav</em>) szerepel.
+</p>
+
+<p>
+Ez a tárhely újra felhasználható sablonként szolgál.
+Nyugodtan cserélje le az animációkat, a hangfelvételeket,
+az útmutatót és a válaszadási paradigmákat
+a saját kísérleti anyagaira.
+</p>
+
+`,
+
+choices:["Tovább"]
+
+};
+
+timeline.push(intro);
+
+
+
+/* =========================
+   GDPR
+   ========================= */
+
+const gdpr = {
+
+type: jsPsychHtmlButtonResponse,
+
+stimulus: `
+
+<h2>GDPR / Adatvédelmi tájékoztató (helykitöltő)</h2>
+
+<p><strong>HELYKITÖLTŐ SZÖVEG</strong></p>
+
+<p>
+Ez a rész a későbbiekben a résztvevők számára készült hivatalos
+tájékoztatót és a kísérlethez szükséges GDPR-dokumentációt fogja tartalmazni.
+</p>
+
+<p>
+A végleges változat jellemzően a következőket tartalmazza:
+</p>
+
+<ul style="text-align:left; display:inline-block;">
+<li>A kutatás célja</li>
+<li>Az adatkezelő adatai</li>
+<li>Az adatok tárolásának módja</li>
+<li>A részvétel visszavonásának lehetősége</li>
+<li>A résztvevők jogai</li>
+<li>Kapcsolattartási információk</li>
+</ul>
+
+<p>
+Ez az oldal kizárólag a bemutató céljából
+helykitöltőként szerepel.
+</p>
+
+`,
+
+choices:["Megértettem"]
+
+};
+
+timeline.push(gdpr);
+
+
+
+/* =========================
+   HÁROMSZÖG ANIMÁCIÓ – BEMUTATÓ
+   ========================= */
+
+const triangleAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let x = -50;
+      const targetX = 260;
+
+      function drawFrame() {
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle = "#222";
+        ctx.fillRect(40, 40, 720, 350);
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(55, 55, 690, 320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55, 55, 690, 320);
+        ctx.clip();
+
+        /* triangle */
+
+        ctx.fillStyle = "#3a66ff";
+
+        ctx.beginPath();
+        ctx.moveTo(x, 230);
+        ctx.lineTo(x + 40, 170);
+        ctx.lineTo(x + 80, 230);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+
+        if (x < targetX) {
+
+          x += 3;
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning = false;
+
+          if (replayStarted) {
+
+            const buttons = document.querySelectorAll("button");
+
+            const continueButton = buttons[buttons.length - 1];
+
+            continueButton.disabled = false;
+            continueButton.style.opacity = "1";
+            continueButton.style.cursor = "pointer";
+
+            statusText.style.color = "#008800";
+
+            statusText.innerHTML =
+              "Az animáció újrajátszása befejeződött. Most továbbléphet a észlelési feladathoz.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* automatic first playback */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton = document.createElement("button");
+
+    replayButton.innerText = "Animáció újrajátszása";
+    replayButton.style.marginTop = "15px";
+
+    replayButton.onclick = function() {
+
+      if (animationRunning) return;
+
+      replayStarted = true;
+
+      statusText.style.color = "#aa0000";
+
+      statusText.innerHTML =
+        "Az animáció újrajátszása folyamatban...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* target sentence */
+
+    const textDiv = document.createElement("div");
+
+    textDiv.innerHTML = `
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Figyelmesen nézze meg az animációt.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Célmondat
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „Megjelent egy háromszög a képernyőn.”
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          A következő oldalon egy ehhez a mondathoz tartozó
+          helykitöltő hangfelvételt fog hallani.
+          Ezt követően egy vagy több észlelési feladatot kell elvégeznie.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText = document.createElement("p");
+
+    statusText.style.marginTop = "15px";
+    statusText.style.fontWeight = "bold";
+    statusText.style.color = "#aa0000";
+
+    statusText.innerHTML =
+      "Kérjük, a továbblépés előtt egyszer játssza le újra az animációt.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(() => {
+
+      const buttons = document.querySelectorAll("button");
+
+      if (buttons.length > 1) {
+
+        const continueButton = buttons[buttons.length - 1];
+
+        continueButton.disabled = true;
+        continueButton.style.opacity = "0.5";
+        continueButton.style.cursor = "not-allowed";
+
+      }
+
+    }, 100);
+
+  },
+
+  choices: ["Tovább"]
+
+};
+
+timeline.push(triangleAnimationDemo);
+
+
+
+
+/* =========================
+   HÁROMSZÖG – ÉSZLELÉSI FELADAT
+   ========================= */
+
+const trianglePerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Mondatértékelés</h2>
+
+      <p style="font-size:18px;">
+        Célmondat
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Megjelent egy háromszög a képernyőn.”
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        A böngészője nem támogatja a hanglejátszást.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hallgassa meg a fenti hangfelvételt.
+      </p>
+
+      <p style="font-size:18px;">
+        Mennyire jó a felvételen elhangzó mondat?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Nagyon rossz válasz<br>
+        5 = Nagyon jó válasz
+      </p>
+
+    </div>
+
+  `,
+
+  choices: [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(trianglePerception);
+
+
+/* =========================
+   HÁROMSZÖG – CSÚSZKÁS ÉRTÉKELÉS
+   ========================= */
+
+const triangleSlider = {
+
+  type: jsPsychHtmlSliderResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Csúszkás értékelés</h2>
+
+      <p><b>Célmondat</b></p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Megjelent egy háromszög a képernyőn.”
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+      </audio>
+
+      <br><br>
+
+      <p>
+        A csúszka segítségével értékelje, hogy mennyire jó a hangfelvétel.
+      </p>
+
+    </div>
+
+  `,
+
+  labels: [
+    "Nagyon rossz",
+    "Nagyon jó"
+  ],
+
+  min: 0,
+  max: 100,
+  slider_start: 50,
+
+  button_label: "Tovább"
+
+};
+
+timeline.push(triangleSlider);
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================
+   HÁROMSZÖG – FORCED CHOICE
+   ========================= */
+
+const triangleForcedChoice = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+<div style="
+max-width:800px;
+margin:auto;
+text-align:center;
+">
+
+<h2>Forced Choice</h2>
+
+<p style="
+font-size:28px;
+font-weight:bold;
+color:#003366;
+">
+„Megjelent egy háromszög a képernyőn.”
+</p>
+
+<p>
+Melyik hangfelvétel hangzik jobban?
+</p>
+
+<table style="
+margin:auto;
+border-spacing:50px 20px;
+">
+
+<tr>
+
+<td>
+
+<b>A hangfelvétel</b><br><br>
+
+<audio controls>
+<source src="audioplaceholder.wav" type="audio/wav">
+</audio>
+
+</td>
+
+<td>
+
+<b>B hangfelvétel</b><br><br>
+
+<audio controls>
+<source src="audioplaceholder.wav" type="audio/wav">
+</audio>
+
+</td>
+
+</tr>
+
+</table>
+
+</div>
+
+`,
+
+choices:[
+"A hangfelvétel",
+"B hangfelvétel"
+]
+
+};
+
+timeline.push(triangleForcedChoice);
+
+
+
+
+
+
+/* =========================
+   HÁROMSZÖG – RANGSOROLÁSI FELADAT
+   ========================= */
+
+const triangleRanking = {
+
+type: jsPsychHtmlButtonResponse,
+
+stimulus: `
+
+<div style="
+max-width:900px;
+margin:auto;
+text-align:center;
+">
+
+<h2>Rangsorolási feladat</h2>
+
+<p style="
+font-size:28px;
+font-weight:bold;
+color:#003366;
+">
+„Megjelent egy háromszög a képernyőn.”
+</p>
+
+<p>
+Hallgassa meg mindhárom hangfelvételt.
+Ezután rangsorolja őket a legjobbtól a legrosszabbig.
+</p>
+
+<table style="
+margin:auto;
+border-spacing:40px 20px;
+">
+
+<tr>
+
+<td>
+
+<b>A hangfelvétel</b><br><br>
+
+<audio controls>
+<source src="audioplaceholder.wav" type="audio/wav">
+</audio>
+
+<br><br>
+
+<select id="rankA">
+<option>1</option>
+<option>2</option>
+<option>3</option>
+</select>
+
+</td>
+
+<td>
+
+<b>B hangfelvétel</b><br><br>
+
+<audio controls>
+<source src="audioplaceholder.wav" type="audio/wav">
+</audio>
+
+<br><br>
+
+<select id="rankB">
+<option>1</option>
+<option>2</option>
+<option>3</option>
+</select>
+
+</td>
+
+<td>
+
+<b>C hangfelvétel</b><br><br>
+
+<audio controls>
+<source src="audioplaceholder.wav" type="audio/wav">
+</audio>
+
+<br><br>
+
+<select id="rankC">
+<option>1</option>
+<option>2</option>
+<option>3</option>
+</select>
+
+</td>
+
+</tr>
+
+</table>
+
+</div>
+
+`,
+
+choices:[
+"Tovább"
+],
+
+on_load: function(){
+
+  window.rankA = document.getElementById("rankA");
+  window.rankB = document.getElementById("rankB");
+  window.rankC = document.getElementById("rankC");
+
+},
+
+on_finish: function(data){
+
+  data.rankA = window.rankA.value;
+  data.rankB = window.rankB.value;
+  data.rankC = window.rankC.value;
+
+}
+
+};
+
+timeline.push(triangleRanking);
+
+
+
+
+
+
+/* =========================
+   PIROS NÉGYZET ANIMÁCIÓ – BEMUTATÓ
+   ========================= */
+
+const squareAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let x = 800;
+      const targetX = 500;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* triangle already present */
+
+        ctx.fillStyle="#3a66ff";
+
+        ctx.beginPath();
+        ctx.moveTo(260,230);
+        ctx.lineTo(300,170);
+        ctx.lineTo(340,230);
+        ctx.closePath();
+        ctx.fill();
+
+        /* red square */
+
+        ctx.fillStyle="#d62828";
+
+        ctx.fillRect(
+          x,
+          150,
+          120,
+          120
+        );
+
+        ctx.restore();
+
+        if(x>targetX){
+
+          x-=3;
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning=false;
+
+          if(replayStarted){
+
+            const buttons=document.querySelectorAll("button");
+
+            const continueButton=buttons[buttons.length-1];
+
+            continueButton.disabled=false;
+            continueButton.style.opacity="1";
+            continueButton.style.cursor="pointer";
+
+            statusText.style.color="#008800";
+
+            statusText.innerHTML=
+              "Az animáció újrajátszása befejeződött. Most továbbléphet az észlelési feladathoz.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animáció újrajátszása";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Az animáció újrajátszása folyamatban...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Figyelmesen nézze meg az animációt.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Célmondat
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „Egy négyzet jelent meg a képernyőn.”
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          A következő oldalon egy ehhez a mondathoz tartozó
+          helykitöltő hangfelvételt fog hallani.
+          Ezt követően egy vagy több észlelési feladatot kell elvégeznie.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Kérjük, a továbblépés előtt egyszer játssza le újra az animációt.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Tovább"]
+
+};
+
+timeline.push(squareAnimationDemo);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================
+   NÉGYZET – ÉSZLELÉSI FELADAT
+   ========================= */
+
+const squarePerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Mondatértékelés</h2>
+
+      <p style="font-size:18px;">
+        Célmondat
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Egy négyzet jelent meg a képernyőn.”
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        A böngészője nem támogatja a hanglejátszást.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hallgassa meg a fenti hangfelvételt.
+      </p>
+
+      <p style="font-size:18px;">
+        Mennyire jó a felvételen elhangzó mondat?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Nagyon rossz válasz<br>
+        5 = Nagyon jó válasz
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(squarePerception);
+
+
+
+
+
+
+/* =========================
+   TOLÁS ANIMÁCIÓ – BEMUTATÓ
+   ========================= */
+
+const pushAnimationDemo = {
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let squareX = 500;
+      let triangleX = 260;
+
+      const squareHome = 500;
+
+      let phase = 1;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* movement */
+
+        if(phase===1){
+
+          squareX-=4;
+
+          if(squareX<=340){
+            phase=2;
+          }
+
+        } else if(phase===2){
+
+          squareX-=4;
+          triangleX-=4;
+
+          if(triangleX<-100){
+            phase=3;
+          }
+
+        } else if(phase===3){
+
+          squareX+=4;
+
+          if(squareX>=squareHome){
+            squareX=squareHome;
+            phase=4;
+          }
+
+        }
+
+        /* triangle */
+
+        if(triangleX>-100){
+
+          ctx.fillStyle="#3a66ff";
+
+          ctx.beginPath();
+          ctx.moveTo(triangleX,230);
+          ctx.lineTo(triangleX+40,170);
+          ctx.lineTo(triangleX+80,230);
+          ctx.closePath();
+          ctx.fill();
+
+        }
+
+        /* square */
+
+        ctx.fillStyle="#d62828";
+        ctx.fillRect(squareX,150,120,120);
+
+        ctx.restore();
+
+        if(phase!==4){
+
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning=false;
+
+          if(replayStarted){
+
+            const buttons=document.querySelectorAll("button");
+
+            const continueButton=buttons[buttons.length-1];
+
+            continueButton.disabled=false;
+            continueButton.style.opacity="1";
+            continueButton.style.cursor="pointer";
+
+            statusText.style.color="#008800";
+
+            statusText.innerHTML=
+              "Az animáció újrajátszása befejeződött. Most továbbléphet az észlelési feladathoz.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animáció újrajátszása";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML="Az animáció újrajátszása folyamatban...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Figyelmesen nézze meg az animációt.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Célmondat
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „A négyzet kilökte a háromszöget a képernyőről.”
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          A következő oldalon egy ehhez a mondathoz tartozó
+          helykitöltő hangfelvételt fog hallani.
+          Ezt követően egy vagy több észlelési feladatot kell elvégeznie.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Kérjük, a továbblépés előtt egyszer játssza le újra az animációt.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Tovább"]
+
+};
+
+timeline.push(pushAnimationDemo);
+
+
+/* =========================
+   TOLÁS – ÉSZLELÉSI FELADAT
+   ========================= */
+
+const pushPerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Mondatértékelés</h2>
+
+      <p style="font-size:18px;">
+        Célmondat
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „A négyzet kilökte a háromszöget a képernyőről.”
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hallgassa meg a fenti hangfelvételt.
+      </p>
+
+      <p style="font-size:18px;">
+        Mennyire jó a felvételen elhangzó mondat?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Nagyon rossz válasz<br>
+        5 = Nagyon jó válasz
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(pushPerception);
+
+
+
+
+
+/* =========================
+   KÖR ANIMÁCIÓ – BEMUTATÓ
+   ========================= */
+
+const circleAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let x = -60;
+      const targetX = 175;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* static red square */
+
+        ctx.fillStyle="#d62828";
+        ctx.fillRect(430,150,120,120);
+
+        /* green circle */
+
+        ctx.fillStyle="#2ca02c";
+
+        ctx.beginPath();
+        ctx.arc(
+          x,
+          210,
+          60,
+          0,
+          2*Math.PI
+        );
+        ctx.fill();
+
+        ctx.restore();
+
+        if(x<targetX){
+
+          x+=3;
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning=false;
+
+          if(replayStarted){
+
+            const buttons=document.querySelectorAll("button");
+
+            const continueButton=buttons[buttons.length-1];
+
+            continueButton.disabled=false;
+            continueButton.style.opacity="1";
+            continueButton.style.cursor="pointer";
+
+            statusText.style.color="#008800";
+
+            statusText.innerHTML=
+              "Az animáció újrajátszása befejeződött. Most továbbléphet az észlelési feladathoz.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animáció újrajátszása";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Az animáció újrajátszása folyamatban...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Figyelmesen nézze meg az animációt.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Célmondat
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „Egy kör jelent meg a képernyőn.”
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          A következő oldalon egy ehhez a mondathoz tartozó
+          helykitöltő hangfelvételt fog hallani.
+          Ezt követően egy vagy több észlelési feladatot kell elvégeznie.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Kérjük, a továbblépés előtt egyszer játssza le újra az animációt.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Tovább"]
+
+};
+
+timeline.push(circleAnimationDemo);
+
+
+
+
+/* =========================
+   KÖR – ÉSZLELÉSI FELADAT
+   ========================= */
+
+const circlePerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Mondatértékelés</h2>
+
+      <p style="font-size:18px;">
+        Célmondat
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „Egy kör jelent meg a képernyőn.”
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        A böngészője nem támogatja a hanglejátszást.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hallgassa meg a fenti hangfelvételt.
+      </p>
+
+      <p style="font-size:18px;">
+        Mennyire jó a felvételen elhangzó mondat?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Nagyon rossz válasz<br>
+        5 = Nagyon jó válasz
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(circlePerception);
+
+
+
+
+/* =========================
+   NÉGYZET UGRÁS ANIMÁCIÓ – BEMUTATÓ
+   ========================= */
+
+const jumpAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      /* same positions as elsewhere */
+
+      const circleX = 175;
+      const squareX = 430;
+
+      let y = 150;
+      let velocity = -18;
+
+      const gravity = 0.9;
+      const ground = 150;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* green circle */
+
+        ctx.fillStyle="#2ca02c";
+
+        ctx.beginPath();
+        ctx.arc(
+          circleX,
+          210,
+          60,
+          0,
+          2*Math.PI
+        );
+        ctx.fill();
+
+        /* red square */
+
+        ctx.fillStyle="#d62828";
+
+        ctx.fillRect(
+          squareX,
+          y,
+          120,
+          120
+        );
+
+        ctx.restore();
+
+        velocity += gravity;
+        y += velocity;
+
+        if(y>=ground){
+
+          y=ground;
+
+          if(velocity>0){
+
+            animationRunning=false;
+
+            if(replayStarted){
+
+              const buttons=document.querySelectorAll("button");
+
+              const continueButton=buttons[buttons.length-1];
+
+              continueButton.disabled=false;
+              continueButton.style.opacity="1";
+              continueButton.style.cursor="pointer";
+
+              statusText.style.color="#008800";
+
+              statusText.innerHTML=
+                "Az animáció újrajátszása befejeződött. Most továbbléphet az észlelési feladathoz.";
+
+            }
+
+            return;
+
+          }
+
+        }
+
+        requestAnimationFrame(drawFrame);
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animáció újrajátszása";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Az animáció újrajátszása folyamatban...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Figyelmesen nézze meg az animációt.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Célmondat
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „A négyzet ugrott.”
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          A következő oldalon egy ehhez a mondathoz tartozó
+          helykitöltő hangfelvételt fog hallani.
+          Ezt követően egy vagy több észlelési feladatot kell elvégeznie.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Kérjük, a továbblépés előtt egyszer játssza le újra az animációt.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Tovább"]
+
+};
+
+timeline.push(jumpAnimationDemo);
+
+/* =========================
+   NÉGYZET UGRÁS – ÉSZLELÉSI FELADAT
+   ========================= */
+
+const jumpPerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Mondatértékelés</h2>
+
+      <p style="font-size:18px;">
+        Célmondat
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „A négyzet ugrott.”
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        A böngészője nem támogatja a hanglejátszást.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hallgassa meg a fenti hangfelvételt.
+      </p>
+
+      <p style="font-size:18px;">
+        Mennyire jó a felvételen elhangzó mondat?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Nagyon rossz válasz<br>
+        5 = Nagyon jó válasz
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(jumpPerception);
+
+
+
+
+
+
+
+
+/* =========================
+   MÉRETVÁLTOZÁS ANIMÁCIÓ – BEMUTATÓ
+   ========================= */
+
+const sizeAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let circleRadius = 45;
+      let squareSize = 120;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* growing green circle */
+
+        ctx.fillStyle="#2ca02c";
+
+        ctx.beginPath();
+        ctx.arc(
+          220,
+          210,
+          circleRadius,
+          0,
+          2*Math.PI
+        );
+        ctx.fill();
+
+        /* shrinking red square */
+
+        ctx.fillStyle="#d62828";
+
+        ctx.fillRect(
+          480 + (120-squareSize)/2,
+          150 + (120-squareSize)/2,
+          squareSize,
+          squareSize
+        );
+
+        ctx.restore();
+
+        if(circleRadius < 75){
+
+          circleRadius += 0.5;
+          squareSize -= 0.5;
+
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning = false;
+
+          if(replayStarted){
+
+            const buttons=document.querySelectorAll("button");
+
+            const continueButton=buttons[buttons.length-1];
+
+            continueButton.disabled=false;
+            continueButton.style.opacity="1";
+            continueButton.style.cursor="pointer";
+
+            statusText.style.color="#008800";
+
+            statusText.innerHTML=
+              "Az animáció újrajátszása befejeződött. Most továbbléphet az észlelési feladathoz.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animáció újrajátszása";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Az animáció újrajátszása folyamatban...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Figyelmesen nézze meg az animációt.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Célmondat
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „A kör nagyobb lett, a négyzet pedig kisebb lett.”
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          A következő oldalon egy ehhez a mondathoz tartozó
+          helykitöltő hangfelvételt fog hallani.
+          Ezt követően egy vagy több észlelési feladatot kell elvégeznie.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Kérjük, a továbblépés előtt egyszer játssza le újra az animációt.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Tovább"]
+
+};
+
+timeline.push(sizeAnimationDemo);
+
+
+
+/* =========================
+   MÉRETVÁLTOZÁS – ÉSZLELÉSI FELADAT
+   ========================= */
+
+const sizePerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Mondatértékelés</h2>
+
+      <p style="font-size:18px;">
+        Célmondat
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „A kör nagyobb lett, a négyzet pedig kisebb lett.”
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        A böngészője nem támogatja a hanglejátszást.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hallgassa meg a fenti hangfelvételt.
+      </p>
+
+      <p style="font-size:18px;">
+        Mennyire jó a felvételen elhangzó mondat?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Nagyon rossz válasz<br>
+        5 = Nagyon jó válasz
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(sizePerception);
+
+
+
+
+
+
+
+/* =========================
+   SZÍN ANIMÁCIÓ – BEMUTATÓ
+   ========================= */
+
+const colourAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let frame = 0;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* green circle */
+
+        ctx.fillStyle="#2ca02c";
+
+        ctx.beginPath();
+        ctx.arc(
+          175,
+          210,
+          75,
+          0,
+          2*Math.PI
+        );
+        ctx.fill();
+
+        /* red square */
+
+        ctx.fillStyle="#d62828";
+
+        ctx.fillRect(
+          445,
+          165,
+          90,
+          90
+        );
+
+        ctx.restore();
+
+        frame++;
+
+        if(frame<60){
+
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          animationRunning=false;
+
+          if(replayStarted){
+
+            const buttons=document.querySelectorAll("button");
+
+            const continueButton=buttons[buttons.length-1];
+
+            continueButton.disabled=false;
+            continueButton.style.opacity="1";
+            continueButton.style.cursor="pointer";
+
+            statusText.style.color="#008800";
+
+            statusText.innerHTML=
+              "Az animáció újrajátszása befejeződött. Most továbbléphet az észlelési feladathoz.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animáció újrajátszása";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Az animáció újrajátszása folyamatban...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Figyelmesen nézze meg az animációt.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Célmondat
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „A négyzet piros.”
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          A következő oldalon egy ehhez a mondathoz tartozó
+          helykitöltő hangfelvételt fog hallani.
+          Ezt követően egy vagy több észlelési feladatot kell elvégeznie.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Kérjük, a továbblépés előtt egyszer játssza le újra az animációt.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Tovább"]
+
+};
+
+timeline.push(colourAnimationDemo);
+
+
+
+/* =========================
+   SZÍN – ÉSZLELÉSI FELADAT
+   ========================= */
+
+const colourPerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Mondatértékelés</h2>
+
+      <p style="font-size:18px;">
+        Célmondat
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „A négyzet piros.”
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        A böngészője nem támogatja a hanglejátszást.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hallgassa meg a fenti hangfelvételt.
+      </p>
+
+      <p style="font-size:18px;">
+        Mennyire jó a felvételen elhangzó mondat?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Nagyon rossz válasz<br>
+        5 = Nagyon jó válasz
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(colourPerception);
+
+
+
+
+
+
+/* =========================
+   EVÉS ANIMÁCIÓ – BEMUTATÓ
+   ========================= */
+
+const eatingAnimationDemo = {
+
+  type: jsPsychCanvasButtonResponse,
+
+  canvas_size: [450, 800],
+
+  stimulus: function(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let replayStarted = false;
+    let animationRunning = false;
+
+    function playAnimation() {
+
+      animationRunning = true;
+
+      let squareX = 500;
+      let mouthOpen = 0;
+
+      function drawFrame() {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* monitor */
+
+        ctx.fillStyle="#222";
+        ctx.fillRect(40,40,720,350);
+
+        ctx.fillStyle="white";
+        ctx.fillRect(55,55,690,320);
+
+        /* clip */
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.rect(55,55,690,320);
+        ctx.clip();
+
+        /* mouth animation */
+
+        mouthOpen =
+          squareX > 270
+            ? 0.45 + 0.12 * Math.sin(squareX * 0.08)
+            : 0;
+
+        /* green circle */
+
+        ctx.fillStyle="#2ca02c";
+
+        ctx.beginPath();
+        ctx.moveTo(220,210);
+
+        ctx.arc(
+          220,
+          210,
+          75,
+          mouthOpen,
+          2*Math.PI-mouthOpen
+        );
+
+        ctx.closePath();
+        ctx.fill();
+
+        /* red square */
+
+        if(squareX > 270){
+
+          ctx.fillStyle="#d62828";
+
+          ctx.fillRect(
+            squareX + 15,
+            165,
+            90,
+            90
+          );
+
+        }
+
+        ctx.restore();
+
+        if(squareX > 270){
+
+          squareX -= 4;
+          requestAnimationFrame(drawFrame);
+
+        } else {
+
+          /* final frame */
+
+          ctx.clearRect(0,0,canvas.width,canvas.height);
+
+          ctx.fillStyle="#222";
+          ctx.fillRect(40,40,720,350);
+
+          ctx.fillStyle="white";
+          ctx.fillRect(55,55,690,320);
+
+          ctx.save();
+
+          ctx.beginPath();
+          ctx.rect(55,55,690,320);
+          ctx.clip();
+
+          ctx.fillStyle="#2ca02c";
+
+          ctx.beginPath();
+          ctx.arc(
+            220,
+            210,
+            75,
+            0,
+            2*Math.PI
+          );
+          ctx.fill();
+
+          ctx.restore();
+
+          animationRunning=false;
+
+          if(replayStarted){
+
+            const buttons=document.querySelectorAll("button");
+
+            const continueButton=buttons[buttons.length-1];
+
+            continueButton.disabled=false;
+            continueButton.style.opacity="1";
+            continueButton.style.cursor="pointer";
+
+            statusText.style.color="#008800";
+
+            statusText.innerHTML=
+              "Az animáció újrajátszása befejeződött. Most továbbléphet az észlelési feladathoz.";
+
+          }
+
+        }
+
+      }
+
+      drawFrame();
+
+    }
+
+    /* first automatic play */
+
+    playAnimation();
+
+    /* replay button */
+
+    const replayButton=document.createElement("button");
+
+    replayButton.innerText="Animáció újrajátszása";
+    replayButton.style.marginTop="15px";
+
+    replayButton.onclick=function(){
+
+      if(animationRunning) return;
+
+      replayStarted=true;
+
+      statusText.style.color="#aa0000";
+
+      statusText.innerHTML=
+        "Az animáció újrajátszása folyamatban...";
+
+      playAnimation();
+
+    };
+
+    canvas.parentElement.appendChild(document.createElement("br"));
+    canvas.parentElement.appendChild(replayButton);
+
+    /* text */
+
+    const textDiv=document.createElement("div");
+
+    textDiv.innerHTML=`
+
+      <div style="
+        margin-top:20px;
+        text-align:center;
+      ">
+
+        <p style="
+          font-size:20px;
+          color:#444;
+          margin-bottom:12px;
+        ">
+          Figyelmesen nézze meg az animációt.
+        </p>
+
+        <p style="
+          font-size:22px;
+          font-weight:bold;
+          margin-bottom:12px;
+        ">
+          Célmondat
+        </p>
+
+        <p style="
+          font-size:28px;
+          font-weight:bold;
+          color:#003366;
+          margin-bottom:18px;
+        ">
+          „A kör megette a négyzetet.”
+        </p>
+
+        <p style="
+          font-size:16px;
+          color:#555;
+          max-width:650px;
+          margin:auto;
+        ">
+          A következő oldalon egy ehhez a mondathoz tartozó
+          helykitöltő hangfelvételt fog hallani.
+          Ezt követően egy vagy több észlelési feladatot kell elvégeznie.
+        </p>
+
+      </div>
+
+    `;
+
+    canvas.parentElement.appendChild(textDiv);
+
+    /* status */
+
+    const statusText=document.createElement("p");
+
+    statusText.style.marginTop="15px";
+    statusText.style.fontWeight="bold";
+    statusText.style.color="#aa0000";
+
+    statusText.innerHTML=
+      "Kérjük, a továbblépés előtt egyszer játssza le újra az animációt.";
+
+    canvas.parentElement.appendChild(statusText);
+
+    /* disable Continue */
+
+    setTimeout(()=>{
+
+      const buttons=document.querySelectorAll("button");
+
+      if(buttons.length>1){
+
+        const continueButton=buttons[buttons.length-1];
+
+        continueButton.disabled=true;
+        continueButton.style.opacity="0.5";
+        continueButton.style.cursor="not-allowed";
+
+      }
+
+    },100);
+
+  },
+
+  choices:["Tovább"]
+
+};
+
+timeline.push(eatingAnimationDemo);
+
+
+
+/* =========================
+   EVÉS – ÉSZLELÉSI FELADAT
+   ========================= */
+
+const eatingPerception = {
+
+  type: jsPsychHtmlButtonResponse,
+
+  stimulus: `
+
+    <div style="
+      max-width:700px;
+      margin:auto;
+      text-align:center;
+    ">
+
+      <h2>Mondatértékelés</h2>
+
+      <p style="font-size:18px;">
+        Célmondat
+      </p>
+
+      <p style="
+        font-size:28px;
+        font-weight:bold;
+        color:#003366;
+      ">
+        „A kör megette a négyzetet.”
+      </p>
+
+      <br>
+
+      <audio controls>
+        <source src="audioplaceholder.wav" type="audio/wav">
+        A böngészője nem támogatja a hanglejátszást.
+      </audio>
+
+      <br><br>
+
+      <p style="font-size:18px;">
+        Hallgassa meg a fenti hangfelvételt.
+      </p>
+
+      <p style="font-size:18px;">
+        Mennyire jó a felvételen elhangzó mondat?
+      </p>
+
+      <p style="
+        color:#666;
+        font-size:16px;
+      ">
+        1 = Nagyon rossz válasz<br>
+        5 = Nagyon jó válasz
+      </p>
+
+    </div>
+
+  `,
+
+  choices:[
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+
+};
+
+timeline.push(eatingPerception);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================
+   BÚCSÚ
+   ========================= */
+
+const goodbye = {
+
+type: jsPsychHtmlButtonResponse,
+
+stimulus: `
+
+<h1>Köszönjük!</h1>
+
+<p>
+Sikeresen befejezte a bemutatót.
+</p>
+
+<p>
+Ez a sablon bemutatja, hogyan valósíthatók meg
+böngészőalapú, animációs észlelési kísérletek
+a <strong>jsPsych</strong> segítségével.
+</p>
+
+<p>
+A bemutató az alábbiak újra felhasználható példáit tartalmazza:
+</p>
+
+<ul style="text-align:left; display:inline-block;">
+<li>Animált vizuális ingerek</li>
+<li>Hanganyagok lejátszása</li>
+<li>5 fokozatú Likert-skála</li>
+<li>Folyamatos értékelés csúszkával</li>
+<li>Forced-Choice paradigmák</li>
+<li>Rangsorolási feladatok</li>
+</ul>
+
+<p>
+Nyugodtan alakítsa át a kódot saját kísérleteihez.
+</p>
+
+<p>
+Most már bezárhatja ezt a böngészőablakot.
+</p>
+
+`,
+
+choices:["Befejezés"]
+
+};
+
+timeline.push(goodbye);
+
+
+
+/* =========================
+   RUN
+   ========================= */
+
+jsPsych.run(timeline);
+
+</script>
+
+</html>
