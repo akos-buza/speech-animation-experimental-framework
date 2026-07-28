@@ -1,12 +1,19 @@
 cff-version: 1.2.0
 
-title: "Speech Animation Framework"
+title: Speech Animation Framework
 
 message: >
-  If you use the Speech Animation Framework in academic research,
+  If you use the Speech Animation Framework in your research,
   please cite this repository.
 
 type: software
+
+abstract: >
+  An open-source framework for browser-based speech production and
+  perception experiments using animated visual stimuli. The repository
+  combines reusable experimental software, comprehensive methodological
+  documentation, and example paradigms for designing, deploying, and
+  analyzing cross-linguistic speech experiments.
 
 authors:
   - family-names: Buza
@@ -14,9 +21,11 @@ authors:
 
 version: 1.0.0
 
-date-released: 2026-07-23
+date-released: 2026-07-28
 
 license: MIT
+
+repository-code: https://github.com/akos-buza/speech-animation-experimental-framework
 
 keywords:
   - speech production
