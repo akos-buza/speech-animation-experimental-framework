@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    Speech Animation Framework for Information Structure
+  </title>
+
+  <style>
+
+    body {
+      font-family: Arial, sans-serif;
+      background: white;
+      color: #222;
+      margin: 0;
+      padding: 40px 20px;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .intro {
+      max-width: 760px;
+      margin: 0 auto 30px auto;
+      line-height: 1.5;
+    }
+
+
+    /* =========================
+       OVERVIEW DISPLAY
+       ========================= */
+
+    .overview-frame {
+      width: 800px;
+      max-width: 100%;
+      margin: 30px auto 20px auto;
+
+      border: 2px solid #222;
+
+      box-sizing: border-box;
+      background: white;
+    }
+
+
+    /* animation window */
+
+    #overview-canvas {
+      display: block;
+
+      width: 100%;
+      height: auto;
+
+      margin: 0;
+      padding: 0;
+
+      background: white;
+    }
+
+
+    /* subtitle window */
+
+    #overview-subtitles {
+      border-top: 1px solid #222;
+
+      min-height: 125px;
+
+      padding: 18px 25px;
+
+      box-sizing: border-box;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      text-align: center;
+    }
+
+
+    #overview-question {
+      font-size: 19px;
+      color: #444;
+      margin: 0 0 8px 0;
+    }
+
+
+    #overview-answer {
+      font-size: 25px;
+      font-weight: bold;
+      margin: 0 0 10px 0;
+    }
+
+
+    #overview-category {
+      font-size: 16px;
+      font-style: italic;
+      color: #666;
+      margin: 0;
+    }
+
+
+    /* play button */
+
+    #play-overview {
+      font-size: 17px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+<div class="page">
+
+  <h1>
+    Speech Animation Framework for Information Structure Research
+  </h1>
+
+  <p class="intro">
+    Simple, 2D animated objects provide controlled dimensions of variation
+    for creating information-structure contexts across languages.
+  </p>
+
+
+  <!-- =========================
+       ANIMATION + SUBTITLE DISPLAY
+       ========================= -->
+
+  <div class="overview-frame">
+
+    <canvas
+      id="overview-canvas"
+      width="800"
+      height="400">
+    </canvas>
+
+
+    <div id="overview-subtitles">
+
+      <p id="overview-question">
+        Eight examples of information structure categories.
+      </p>
+
+      <p id="overview-answer">
+        Press Play to see what the framework can do, before you scroll down to see the examples explained one by one.
+      </p>
+
+      <p id="overview-category">
+        Broad focus · new information · narrow focus · contrast · correction ·
+        properties · verum · mirativity
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <button
+    id="play-overview"
+    type="button">
+    Play overview
+  </button>
+
+</div>
+
+
+<script>
+
+  /* =========================
+     INITIAL DISPLAY
+     ========================= */
+
+  const canvas =
+    document.getElementById("overview-canvas");
+
+  const ctx =
+    canvas.getContext("2d");
+
+
+  function drawInitialScreen() {
+
+    ctx.clearRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+
+    /* black monitor */
+
+    ctx.fillStyle = "#222";
+
+    ctx.fillRect(
+      40,
+      25,
+      720,
+      350
+    );
+
+
+    /* white animation area */
+
+    ctx.fillStyle = "white";
+
+    ctx.fillRect(
+      55,
+      40,
+      690,
+      320
+    );
+
+  }
+
+
+  drawInitialScreen();
+
+
+
+
+
+
+
+/* =========================
+   OVERVIEW SEQUENCE
+   ========================= */
+
+const question =
+  document.getElementById("overview-question");
+
+const answer =
+  document.getElementById("overview-answer");
+
+const category =
+  document.getElementById("overview-category");
+
+const playButton =
+  document.getElementById("play-overview");
+
+let overviewRunning = false;
+
+
+/* =========================
+   SCENE 1: BROAD FOCUS
+   ========================= */
+
+function sceneBroadFocus() {
+
+  drawInitialScreen();
+
+  question.textContent = "";
+  answer.textContent = "";
+  category.textContent = "";
+
+  let x = -50;
+  const targetX = 260;
+
+  function drawFrame() {
+
+    drawInitialScreen();
+
+    /* keep object inside white screen */
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.rect(55, 40, 690, 320);
+    ctx.clip();
+
+    /* blue triangle */
+
+    ctx.fillStyle = "#3a66ff";
+
+    ctx.beginPath();
+    ctx.moveTo(x, 215);
+    ctx.lineTo(x + 40, 155);
+    ctx.lineTo(x + 80, 215);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+
+
+    if (x < targetX) {
+
+      x += 3;
+      requestAnimationFrame(drawFrame);
+
+    } else {
+
+      /* show question and answer */
+
+      question.textContent =
+        "What happened?";
+
+      answer.textContent =
+        "A triangle showed up.";
+
+      category.textContent =
+        "(Broad focus)";
+
+
+      /* later Scene 2 will start here */
+
+      setTimeout(function() {
+
+  sceneNewInformation();
+
+}, 3000);
+
+    }
+
+  }
+
+  drawFrame();
+
+}
+
+
+/* =========================
+   PLAY
+   ========================= */
+
+playButton.addEventListener(
+  "click",
+  function() {
+
+    if (overviewRunning) return;
+
+    overviewRunning = true;
+
+    playButton.disabled = true;
+    playButton.textContent =
+      "Overview playing...";
+
+    sceneBroadFocus();
+
+  }
+);
+
+
+
+/* =========================
+   SCENE 2: NEW-INFORMATION FOCUS
+   ========================= */
+
+function sceneNewInformation() {
+
+  question.textContent = "";
+  answer.textContent = "";
+  category.textContent = "";
+
+  let squareX = 800;
+  const targetX = 500;
+
+  function drawFrame() {
+
+    drawInitialScreen();
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.rect(55, 40, 690, 320);
+    ctx.clip();
+
+
+    /* established blue triangle */
+
+    ctx.fillStyle = "#3a66ff";
+
+    ctx.beginPath();
+    ctx.moveTo(260, 215);
+    ctx.lineTo(300, 155);
+    ctx.lineTo(340, 215);
+    ctx.closePath();
+    ctx.fill();
+
+
+    /* new red square */
+
+    ctx.fillStyle = "#d62828";
+
+    ctx.fillRect(
+      squareX,
+      135,
+      120,
+      120
+    );
+
+    ctx.restore();
+
+
+    if (squareX > targetX) {
+
+      squareX -= 3;
+      requestAnimationFrame(drawFrame);
+
+    } else {
+
+      question.textContent =
+        "What showed up?";
+
+      answer.textContent =
+        "A square showed up.";
+
+      category.textContent =
+        "(New-information focus)";
+
+
+      setTimeout(function() {
+
+  sceneNarrowFocus();
+
+}, 3000);
+
+    }
+
+  }
+
+  drawFrame();
+
+}
+
+
+
+
+/* =========================
+   SCENE 3: NARROW FOCUS
+   ========================= */
+
+function sceneNarrowFocus() {
+
+  question.textContent = "";
+  answer.textContent = "";
+  category.textContent = "";
+
+  let squareX = 500;
+  let triangleX = 260;
+
+  const squareHome = 500;
+
+  let phase = 1;
+
+  function drawFrame() {
+
+    drawInitialScreen();
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.rect(55, 40, 690, 320);
+    ctx.clip();
+
+
+    /* movement */
+
+    if (phase === 1) {
+
+      squareX -= 4;
+
+      if (squareX <= 340) {
+        phase = 2;
+      }
+
+    } else if (phase === 2) {
+
+      squareX -= 4;
+      triangleX -= 4;
+
+      if (triangleX < -100) {
+        phase = 3;
+      }
+
+    } else if (phase === 3) {
+
+      squareX += 4;
+
+      if (squareX >= squareHome) {
+        squareX = squareHome;
+        phase = 4;
+      }
+
+    }
+
+
+    /* established blue triangle */
+
+    if (triangleX > -100) {
+
+      ctx.fillStyle = "#3a66ff";
+
+      ctx.beginPath();
+      ctx.moveTo(triangleX, 215);
+      ctx.lineTo(triangleX + 40, 155);
+      ctx.lineTo(triangleX + 80, 215);
+      ctx.closePath();
+      ctx.fill();
+
+    }
+
+
+    /* established red square */
+
+    ctx.fillStyle = "#d62828";
+
+    ctx.fillRect(
+      squareX,
+      135,
+      120,
+      120
+    );
+
+    ctx.restore();
+
+
+    if (phase !== 4) {
+
+      requestAnimationFrame(drawFrame);
+
+    } else {
+
+      question.textContent =
+        "Which shape pushed the other one off the screen?";
+
+      answer.textContent =
+        "The square pushed the triangle off the screen.";
+
+      category.textContent =
+        "(Narrow focus on the subject)";
+
+
+     setTimeout(function() {
+
+  sceneCorrectiveColour();
+
+}, 3000);
+
+    }
+
+  }
+
+  drawFrame();
+
+}
+
+
+
+
+
+
+
+
+
+
+/* =========================
+   SCENE 4: CORRECTIVE COLOUR FOCUS
+   ========================= */
+
+function sceneCorrectiveColour() {
+
+  question.textContent = "";
+  answer.textContent = "";
+  category.textContent = "";
+
+  let circleX = -75;
+  const targetX = 175;
+
+  function drawFrame() {
+
+    drawInitialScreen();
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.rect(55, 40, 690, 320);
+    ctx.clip();
+
+
+    /* established red square */
+
+    ctx.fillStyle = "#d62828";
+
+    ctx.fillRect(
+      500,
+      135,
+      120,
+      120
+    );
+
+
+    /* new green circle */
+
+    ctx.fillStyle = "#2ca02c";
+
+    ctx.beginPath();
+    ctx.arc(
+      circleX,
+      195,
+      60,
+      0,
+      2 * Math.PI
+    );
+    ctx.fill();
+
+    ctx.restore();
+
+
+    if (circleX < targetX) {
+
+      circleX += 3;
+      requestAnimationFrame(drawFrame);
+
+    } else {
+
+      question.textContent =
+        "The circle is blue, isn't it?";
+
+      answer.textContent =
+        "No. The circle is green.";
+
+      category.textContent =
+        "(Corrective focus on colour)";
+
+
+      setTimeout(function() {
+
+  sceneActionFocus();
+
+}, 3000);
+
+    }
+
+  }
+
+  drawFrame();
+
+}
+
+
+
+/* =========================
+   SCENE 5: NARROW FOCUS ON ACTION
+   ========================= */
+
+function sceneActionFocus() {
+
+  question.textContent = "";
+  answer.textContent = "";
+  category.textContent = "";
+
+  const circleX = 175;
+  const squareX = 500;
+
+  let squareY = 135;
+  let velocity = -18;
+
+  const gravity = 0.9;
+  const ground = 135;
+
+  function drawFrame() {
+
+    drawInitialScreen();
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.rect(55, 40, 690, 320);
+    ctx.clip();
+
+
+    /* established green circle */
+
+    ctx.fillStyle = "#2ca02c";
+
+    ctx.beginPath();
+    ctx.arc(
+      circleX,
+      195,
+      60,
+      0,
+      2 * Math.PI
+    );
+    ctx.fill();
+
+
+    /* jumping red square */
+
+    ctx.fillStyle = "#d62828";
+
+    ctx.fillRect(
+      squareX,
+      squareY,
+      120,
+      120
+    );
+
+    ctx.restore();
+
+
+    /* jumping physics */
+
+    velocity += gravity;
+    squareY += velocity;
+
+
+    if (squareY >= ground) {
+
+      squareY = ground;
+
+      if (velocity > 0) {
+
+        question.textContent =
+          "What is it that the square did?";
+
+        answer.textContent =
+          "The square jumped.";
+
+        category.textContent =
+          "(Narrow focus on the action)";
+
+
+        setTimeout(function() {
+
+  sceneSizeFocus();
+
+}, 3000);
+
+        return;
+
+      }
+
+    }
+
+    requestAnimationFrame(drawFrame);
+
+  }
+
+  drawFrame();
+
+}
+
+
+/* =========================
+   SCENE 6: NARROW FOCUS ON SIZE
+   ========================= */
+
+function sceneSizeFocus() {
+
+  question.textContent = "";
+  answer.textContent = "";
+  category.textContent = "";
+
+  let circleRadius = 45;
+  let squareSize = 120;
+
+  function drawFrame() {
+
+    drawInitialScreen();
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.rect(55, 40, 690, 320);
+    ctx.clip();
+
+
+    /* growing green circle */
+
+    ctx.fillStyle = "#2ca02c";
+
+    ctx.beginPath();
+    ctx.arc(
+      220,
+      195,
+      circleRadius,
+      0,
+      2 * Math.PI
+    );
+    ctx.fill();
+
+
+    /* shrinking red square */
+
+    ctx.fillStyle = "#d62828";
+
+    ctx.fillRect(
+      480 + (120 - squareSize) / 2,
+      135 + (120 - squareSize) / 2,
+      squareSize,
+      squareSize
+    );
+
+    ctx.restore();
+
+
+    if (circleRadius < 75) {
+
+      circleRadius += 0.5;
+      squareSize -= 0.5;
+
+      requestAnimationFrame(drawFrame);
+
+    } else {
+
+      question.textContent =
+        "What is the square, is it small or big?";
+
+      answer.textContent =
+        "The square is small.";
+
+      category.textContent =
+        "(Narrow focus on size)";
+
+
+      setTimeout(function() {
+
+  sceneMirativity();
+
+}, 3000);
+
+    }
+
+  }
+
+  drawFrame();
+
+}
+
+
+/* =========================
+   SCENE 7: SURPRISE / MIRATIVITY
+   ========================= */
+
+function sceneMirativity() {
+
+  question.textContent = "";
+  answer.textContent = "";
+  category.textContent = "";
+
+  let squareX = 500;
+  let mouthOpen = 0;
+
+  function drawFrame() {
+
+    drawInitialScreen();
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.rect(55, 40, 690, 320);
+    ctx.clip();
+
+
+    /* animated mouth */
+
+    mouthOpen =
+      squareX > 270
+        ? 0.45 + 0.12 * Math.sin(squareX * 0.08)
+        : 0;
+
+
+    /* large green circle */
+
+    ctx.fillStyle = "#2ca02c";
+
+    ctx.beginPath();
+    ctx.moveTo(220, 195);
+
+    ctx.arc(
+      220,
+      195,
+      75,
+      mouthOpen,
+      2 * Math.PI - mouthOpen
+    );
+
+    ctx.closePath();
+    ctx.fill();
+
+
+    /* small red square */
+
+    if (squareX > 270) {
+
+      ctx.fillStyle = "#d62828";
+
+      ctx.fillRect(
+        squareX + 15,
+        150,
+        90,
+        90
+      );
+
+    }
+
+    ctx.restore();
+
+
+    if (squareX > 270) {
+
+      squareX -= 4;
+
+      requestAnimationFrame(drawFrame);
+
+    } else {
+
+      /* final state: circle remains, square is gone */
+
+      drawInitialScreen();
+
+      ctx.save();
+
+      ctx.beginPath();
+      ctx.rect(55, 40, 690, 320);
+      ctx.clip();
+
+      ctx.fillStyle = "#2ca02c";
+
+      ctx.beginPath();
+      ctx.arc(
+        220,
+        195,
+        75,
+        0,
+        2 * Math.PI
+      );
+      ctx.fill();
+
+      ctx.restore();
+
+
+      question.textContent =
+        "What happened?!";
+
+      answer.textContent =
+        "The circle ate the square.";
+
+      category.textContent =
+        "(Surprise / mirativity)";
+
+
+      /* hold the final example before showing the conclusion */
+
+      setTimeout(function() {
+
+        showOverviewConclusion();
+
+      }, 4000);
+
+    }
+
+  }
+
+  drawFrame();
+
+}
+
+
+/* =========================
+   FINAL MESSAGE
+   ========================= */
+
+function showOverviewConclusion() {
+
+  question.textContent =
+    "The same simple objects can systematically vary in shape, colour, size, discourse status, and action.";
+
+  answer.textContent =
+    "Languages can encode these distinctions through prosody, word order, syntax, morphology, and their combinations.";
+
+  category.textContent =
+    "The examples below unpack these possibilities one by one.";
+
+  overviewRunning = false;
+  playButton.disabled = false;
+  playButton.textContent = "Replay overview";
+
+}
+
+
+
+
+
+
+
+
+
+
+</script>
+
+</body>
+
+</html>
